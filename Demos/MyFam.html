@@ -22,6 +22,8 @@
     </div>
 
     <script>
+        // Only include Graph resource scopes, not openid, profile, or offline_access
+        const GRAPH_SCOPES = ["Files.Read.All", "Files.Read.Shared"];
         const msalConfig = {
             auth: {
                 clientId: "9ba40cef-cb84-4bdd-b277-42c861dec363",
@@ -34,7 +36,6 @@
             }
         };
 
-        const GRAPH_SCOPES = ["Files.Read.All", "Files.Read.Shared"];
         const msalInstance = new msal.PublicClientApplication(msalConfig);
         const loginButton = document.getElementById('loginButton');
         const content = document.getElementById('content');
@@ -63,7 +64,6 @@
         loginButton.addEventListener('click', async () => {
             try {
                 await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
-                // Now get token and fetch shared items
                 const accessToken = await getToken();
                 await getSharedItems(accessToken);
             } catch (error) {
@@ -173,7 +173,7 @@
                         if (thumbUrl) {
                             const img = document.createElement('img');
                             img.className = 'thumbnail';
-                            img.src = thumbUrl + (thumbUrl.includes('?') ? '&' : '?') + 'access_token=' + encodeURIComponent(accessToken);
+                            img.src = thumbUrl;
                             img.alt = 'Thumbnail';
                             itemDiv.appendChild(img);
                         }
@@ -224,6 +224,21 @@
                 itemsContainer.appendChild(personSection);
             }
         }
+
+        // Optional: check if already logged in on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            const accounts = msalInstance.getAllAccounts();
+            if (accounts.length > 0) {
+                try {
+                    const accessToken = await getToken();
+                    await getSharedItems(accessToken);
+                } catch (e) {
+                    // No valid session, show login button
+                    loginButton.classList.remove('hidden');
+                    content.classList.add('hidden');
+                }
+            }
+        });
     </script>
 </body>
 </html>
