@@ -22,8 +22,8 @@
     </div>
 
     <script>
-        // Correct: Only user delegated scopes for browser-based apps
-        const GRAPH_SCOPES = ["Files.Read.All", "Files.Read.Shared"];
+        // Using .default scope per your request
+        const GRAPH_SCOPES = ["https://graph.microsoft.com/.default"];
         const msalConfig = {
             auth: {
                 clientId: "9ba40cef-cb84-4bdd-b277-42c861dec363",
@@ -41,7 +41,6 @@
         const content = document.getElementById('content');
         const itemsContainer = document.getElementById('itemsContainer');
 
-        // Helper: get access token for Graph
         async function getToken() {
             const accounts = msalInstance.getAllAccounts();
             if (accounts.length === 0) throw new Error("No signed-in account");
@@ -52,7 +51,6 @@
                 });
                 return silentResult.accessToken;
             } catch (e) {
-                // fallback to popup if silent fails
                 const popupResult = await msalInstance.acquireTokenPopup({
                     scopes: GRAPH_SCOPES
                 });
@@ -60,7 +58,6 @@
             }
         }
 
-        // Login click handler
         loginButton.addEventListener('click', async () => {
             try {
                 await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
@@ -72,7 +69,6 @@
             }
         });
 
-        // Get shared items from Microsoft Graph API
         async function getSharedItems(accessToken) {
             try {
                 const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/sharedWithMe', {
@@ -89,7 +85,6 @@
             }
         }
 
-        // Helper: is image file
         function isPicture(item) {
             const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'];
             if (item.file && item.name) {
@@ -99,14 +94,12 @@
             return false;
         }
 
-        // Helper: format date string
         function formatDate(dateString) {
             if (!dateString) return '';
             const d = new Date(dateString);
             return d.toLocaleString();
         }
 
-        // Helper: get thumbnail url for a file item
         function getThumbnail(item) {
             let thumb = null;
             if (item.remoteItem?.thumbnails?.length > 0) {
@@ -117,7 +110,6 @@
             return thumb;
         }
 
-        // Organize and display items
         function organizeAndDisplayItems(items, accessToken) {
             const itemsByPerson = {};
             items.forEach(item => {
