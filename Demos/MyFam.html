@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneDrive Shared Items Organizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0078d4, #106ebe);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .person-section {
+            margin-bottom: 40px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .person-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-bottom: 2px solid #0078d4;
+        }
+
+        .person-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #0078d4;
+            margin-bottom: 5px;
+        }
+
+        .person-email {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .item-type-section {
+            margin: 20px;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .item-type-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: bold;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .type-icon {
+            font-size: 1.2em;
+        }
+
+        .items-list {
+            padding: 0;
+        }
+
+        .item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #0078d4;
+            margin-bottom: 5px;
+        }
+
+        .item-details {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .item-meta {
+            text-align: right;
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .item-size {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .shared-date {
+            margin-top: 3px;
+        }
+
+        .link-button {
+            background: #0078d4;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.85em;
+            transition: background-color 0.2s;
+        }
+
+        .link-button:hover {
+            background: #106ebe;
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: inline-block;
+            margin: 0 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0078d4;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 0;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .item-meta {
+                text-align: left;
+                width: 100%;
+            }
+            
+            .stat-item {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📁 OneDrive Shared Items</h1>
+            <p>Items shared with me, organized by person and type</p>
+        </div>
+        
+        <div class="content">
+            <div class="stats" id="stats">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div id="organized-content">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const oneDriveData = {
+    "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#Collection(microsoft.graph.driveItem)",
+    "@microsoft.graph.tips": "Use $select to choose only the properties your app needs, as this can lead to performance improvements. For example: GET me/drive/microsoft.graph.sharedWithMe?$select=audio,bundle",
+    "value": [
+        {
+            "createdDateTime": "2025-09-11T01:26:35Z",
+            "id": "32F780A89FE5863D!sd39cbab4618a425c9b0a2f9a011bd1c4",
+            "lastModifiedDateTime": "2025-09-11T01:26:35Z",
+            "name": "OneDrive_SharedWithMe_Response.txt",
+            "webUrl": "https://onedrive.live.com?cid=32f780a89fe5863d&id=32F780A89FE5863D!sd39cbab4618a425c9b0a2f9a011bd1c4",
+            "size": 26041,
+            "createdBy": {
+                "user": {
+                    "email": "outlook_32F780A89FE5863D@outlook.com",
+                    "id": "outlook_32F780A89FE5863D@outlook.com",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "lastModifiedBy": {
+                "user": {
+                    "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "file": {
+                "mimeType": "text/plain",
+                "hashes": {}
+            },
+            "fileSystemInfo": {
+                "createdDateTime": "2025-09-11T01:26:35Z",
+                "lastModifiedDateTime": "2025-09-11T01:26:35Z"
+            },
+            "remoteItem": {
+                "createdDateTime": "2025-09-11T01:26:35Z",
+                "id": "32F780A89FE5863D!sd39cbab4618a425c9b0a2f9a011bd1c4",
+                "lastModifiedDateTime": "2025-09-11T01:26:35Z",
+                "name": "OneDrive_SharedWithMe_Response.txt",
+                "size": 26041,
+                "createdBy": {
+                    "user": {
+                        "email": "outlook_32F780A89FE5863D@outlook.com",
+                        "id": "outlook_32F780A89FE5863D@outlook.com",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "file": {
+                    "mimeType": "text/plain",
+                    "hashes": {}
+                },
+                "fileSystemInfo": {
+                    "createdDateTime": "2025-09-11T01:26:35Z",
+                    "lastModifiedDateTime": "2025-09-11T01:26:35Z"
+                },
+                "lastModifiedBy": {
+                    "user": {
+                        "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "parentReference": {
+                    "driveType": "personal",
+                    "driveId": "32f780a89fe5863d"
+                },
+                "shared": {
+                    "scope": "users",
+                    "sharedDateTime": "2025-09-11T01:26:51Z",
+                    "owner": {
+                        "user": {
+                            "id": "32f780a89fe5863d",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    },
+                    "sharedBy": {
+                        "user": {
+                            "email": "outlook_32F780A89FE5863D@outlook.com",
+                            "id": "outlook_32F780A89FE5863D@outlook.com",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    }
+                },
+                "sharepointIds": {
+                    "listId": "901e74a9-26ee-4a13-b660-a37fc2916c8b",
+                    "listItemId": "61854",
+                    "listItemUniqueId": "d39cbab4-618a-425c-9b0a-2f9a011bd1c4",
+                    "siteId": "989c251d-9779-4245-a165-07a606638973",
+                    "siteUrl": "https://my.microsoftpersonalcontent.com/personal/32f780a89fe5863d",
+                    "webId": "8946bd78-db2a-41cc-ad6b-4335798d940c"
+                }
+            }
+        },
+        {
+            "createdDateTime": "2025-09-09T00:59:30Z",
+            "id": "32F780A89FE5863D!s3745b012ed3f41ab943fdd89da7057d7",
+            "lastModifiedDateTime": "2025-09-09T00:59:32Z",
+            "name": "20250908_164055.jpg",
+            "webUrl": "https://onedrive.live.com?cid=32f780a89fe5863d&id=32F780A89FE5863D!s3745b012ed3f41ab943fdd89da7057d7",
+            "size": 3208639,
+            "createdBy": {
+                "user": {
+                    "email": "outlook_32F780A89FE5863D@outlook.com",
+                    "id": "outlook_32F780A89FE5863D@outlook.com",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "lastModifiedBy": {
+                "user": {
+                    "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "file": {
+                "mimeType": "image/jpeg",
+                "hashes": {}
+            },
+            "fileSystemInfo": {
+                "createdDateTime": "2025-09-09T00:59:30Z",
+                "lastModifiedDateTime": "2025-09-09T00:59:32Z"
+            },
+            "remoteItem": {
+                "createdDateTime": "2025-09-09T00:59:30Z",
+                "id": "32F780A89FE5863D!s3745b012ed3f41ab943fdd89da7057d7",
+                "lastModifiedDateTime": "2025-09-09T00:59:32Z",
+                "name": "20250908_164055.jpg",
+                "size": 3208639,
+                "createdBy": {
+                    "user": {
+                        "email": "outlook_32F780A89FE5863D@outlook.com",
+                        "id": "outlook_32F780A89FE5863D@outlook.com",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "file": {
+                    "mimeType": "image/jpeg",
+                    "hashes": {}
+                },
+                "fileSystemInfo": {
+                    "createdDateTime": "2025-09-09T00:59:30Z",
+                    "lastModifiedDateTime": "2025-09-09T00:59:32Z"
+                },
+                "lastModifiedBy": {
+                    "user": {
+                        "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "parentReference": {
+                    "driveType": "personal",
+                    "driveId": "32f780a89fe5863d"
+                },
+                "shared": {
+                    "scope": "users",
+                    "sharedDateTime": "2025-09-11T01:17:42Z",
+                    "owner": {
+                        "user": {
+                            "id": "32f780a89fe5863d",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    },
+                    "sharedBy": {
+                        "user": {
+                            "email": "outlook_32F780A89FE5863D@outlook.com",
+                            "id": "outlook_32F780A89FE5863D@outlook.com",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    }
+                },
+                "sharepointIds": {
+                    "listId": "901e74a9-26ee-4a13-b660-a37fc2916c8b",
+                    "listItemId": "61852",
+                    "listItemUniqueId": "3745b012-ed3f-41ab-943f-dd89da7057d7",
+                    "siteId": "989c251d-9779-4245-a165-07a606638973",
+                    "siteUrl": "https://my.microsoftpersonalcontent.com/personal/32f780a89fe5863d",
+                    "webId": "8946bd78-db2a-41cc-ad6b-4335798d940c"
+                }
+            }
+        },
+        {
+            "createdDateTime": "2025-08-12T14:46:07Z",
+            "id": "16BC0C31784BA193!s11f38b76eacc4ea1b63974da022bff06",
+            "lastModifiedDateTime": "2025-08-12T14:46:03Z",
+            "name": "Adam Kodish Introduction - Microsoft Interview - 8.12.25.pdf",
+            "webUrl": "https://onedrive.live.com?cid=16bc0c31784ba193&id=16BC0C31784BA193!s11f38b76eacc4ea1b63974da022bff06",
+            "size": 813600,
+            "createdBy": {
+                "user": {
+                    "email": "outlook_16BC0C31784BA193@outlook.com",
+                    "id": "outlook_16BC0C31784BA193@outlook.com",
+                    "displayName": "Adam Kodish"
+                }
+            },
+            "lastModifiedBy": {
+                "user": {
+                    "email": "ADAM.KODISH@YAHOO.COM",
+                    "id": "ADAM.KODISH@YAHOO.COM",
+                    "displayName": "Adam Kodish"
+                }
+            },
+            "file": {
+                "mimeType": "application/pdf",
+                "hashes": {}
+            },
+            "fileSystemInfo": {
+                "createdDateTime": "2025-08-12T14:46:07Z",
+                "lastModifiedDateTime": "2025-08-12T14:46:03Z"
+            },
+            "remoteItem": {
+                "createdDateTime": "2025-08-12T14:46:07Z",
+                "id": "16BC0C31784BA193!s11f38b76eacc4ea1b63974da022bff06",
+                "lastModifiedDateTime": "2025-08-12T14:46:03Z",
+                "name": "Adam Kodish Introduction - Microsoft Interview - 8.12.25.pdf",
+                "size": 813600,
+                "createdBy": {
+                    "user": {
+                        "email": "outlook_16BC0C31784BA193@outlook.com",
+                        "id": "outlook_16BC0C31784BA193@outlook.com",
+                        "displayName": "Adam Kodish"
+                    }
+                },
+                "file": {
+                    "mimeType": "application/pdf",
+                    "hashes": {}
+                },
+                "fileSystemInfo": {
+                    "createdDateTime": "2025-08-12T14:46:07Z",
+                    "lastModifiedDateTime": "2025-08-12T14:46:03Z"
+                },
+                "lastModifiedBy": {
+                    "user": {
+                        "email": "ADAM.KODISH@YAHOO.COM",
+                        "id": "ADAM.KODISH@YAHOO.COM",
+                        "displayName": "Adam Kodish"
+                    }
+                },
+                "parentReference": {
+                    "driveType": "personal",
+                    "driveId": "16bc0c31784ba193"
+                },
+                "shared": {
+                    "scope": "users",
+                    "sharedDateTime": "2025-08-12T16:00:51Z",
+                    "owner": {
+                        "user": {
+                            "id": "16bc0c31784ba193",
+                            "displayName": "Adam Kodish"
+                        }
+                    },
+                    "sharedBy": {
+                        "user": {
+                            "email": "outlook_16BC0C31784BA193@outlook.com",
+                            "id": "outlook_16BC0C31784BA193@outlook.com",
+                            "displayName": "Adam Kodish"
+                        }
+                    }
+                },
+                "sharepointIds": {
+                    "listId": "53a0096e-d74d-4c1c-8656-80eb0392a9a4",
+                    "listItemId": "15179",
+                    "listItemUniqueId": "11f38b76-eacc-4ea1-b639-74da022bff06",
+                    "siteId": "99a6b0de-3fad-495f-a573-19998d5dd04f",
+                    "siteUrl": "https://my.microsoftpersonalcontent.com/personal/16bc0c31784ba193",
+                    "webId": "0ec3960d-19b1-4ae6-bca9-91e861610bd8"
+                }
+            }
+        },
+        {
+            "createdDateTime": "2013-11-01T16:42:18Z",
+            "id": "32F780A89FE5863D!9673",
+            "lastModifiedDateTime": "2013-11-01T16:42:18Z",
+            "name": "Family Room",
+            "webUrl": "https://onedrive.live.com?cid=32f780a89fe5863d&id=32F780A89FE5863D!9673",
+            "size": 0,
+            "createdBy": {
+                "user": {
+                    "email": "outlook_32F780A89FE5863D@outlook.com",
+                    "id": "outlook_32F780A89FE5863D@outlook.com",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "lastModifiedBy": {
+                "user": {
+                    "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                    "displayName": "Thymio Barbatsis"
+                }
+            },
+            "file": {
+                "mimeType": "application/octet-stream",
+                "hashes": {}
+            },
+            "fileSystemInfo": {
+                "createdDateTime": "2013-11-01T16:42:18Z",
+                "lastModifiedDateTime": "2013-11-01T16:42:18Z"
+            },
+            "remoteItem": {
+                "createdDateTime": "2013-11-01T16:42:18Z",
+                "id": "32F780A89FE5863D!9673",
+                "lastModifiedDateTime": "2013-11-01T16:42:18Z",
+                "name": "Family Room",
+                "size": 0,
+                "createdBy": {
+                    "user": {
+                        "email": "outlook_32F780A89FE5863D@outlook.com",
+                        "id": "outlook_32F780A89FE5863D@outlook.com",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "fileSystemInfo": {
+                    "createdDateTime": "2013-11-01T16:42:18Z",
+                    "lastModifiedDateTime": "2013-11-01T16:42:18Z"
+                },
+                "lastModifiedBy": {
+                    "user": {
+                        "email": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "id": "THYMIO@TECHNOLOGY-ALLSTARS.COM",
+                        "displayName": "Thymio Barbatsis"
+                    }
+                },
+                "package": {
+                    "type": "oneNote"
+                },
+                "parentReference": {
+                    "driveType": "personal",
+                    "driveId": "32f780a89fe5863d"
+                },
+                "shared": {
+                    "scope": "users",
+                    "sharedDateTime": "2024-12-04T16:38:15Z",
+                    "owner": {
+                        "user": {
+                            "id": "32f780a89fe5863d",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    },
+                    "sharedBy": {
+                        "user": {
+                            "email": "outlook_32F780A89FE5863D@outlook.com",
+                            "id": "outlook_32F780A89FE5863D@outlook.com",
+                            "displayName": "Thymio Barbatsis"
+                        }
+                    }
+                },
+                "sharepointIds": {
+                    "listId": "901e74a9-26ee-4a13-b660-a37fc2916c8b",
+                    "listItemId": "1103",
+                    "listItemUniqueId": "9fe5863d-80a8-20f7-8032-c92500000000",
+                    "siteId": "989c251d-9779-4245-a165-07a606638973",
+                    "siteUrl": "https://my.microsoftpersonalcontent.com/personal/32f780a89fe5863d",
+                    "webId": "8946bd78-db2a-41cc-ad6b-4335798d940c"
+                }
+            }
+        }
+    ]
+};
+
+        function getItemType(item) {
+            if (item.folder) return 'Folders';
+            if (item.remoteItem && item.remoteItem.package && item.remoteItem.package.type === 'oneNote') return 'OneNote Notebooks';
+            if (item.file) {
+                const mimeType = item.file.mimeType;
+                if (mimeType.includes('word')) return 'Word Documents';
+                if (mimeType.includes('excel')) return 'Excel Files';
+                if (mimeType.includes('powerpoint')) return 'PowerPoint Files';
+                if (mimeType.includes('pdf')) return 'PDF Files';
+                if (mimeType.includes('image')) return 'Images';
+            }
+            return 'Other Files';
+        }
+
+        function getTypeIcon(type) {
+            const icons = {
+                'Folders': '📁',
+                'OneNote Notebooks': '📔',
+                'Word Documents': '📄',
+                'Excel Files': '📊',
+                'PowerPoint Files': '📈',
+                'PDF Files': '📕',
+                'Images': '🖼️',
+                'Other Files': '📋'
+            };
+            return icons[type] || '📋';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return 'Folder';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        function organizeData() {
+            const organized = {};
+            
+            oneDriveData.value.forEach(item => {
+                const person = item.createdBy.user.displayName;
+                const email = item.createdBy.user.email;
+                const type = getItemType(item);
+                
+                if (!organized[person]) {
+                    organized[person] = {
+                        email: email,
+                        types: {}
+                    };
+                }
+                
+                if (!organized[person].types[type]) {
+                    organized[person].types[type] = [];
+                }
+                
+                organized[person].types[type].push(item);
+            });
+            
+            return organized;
+        }
+
+        function generateStats(organizedData) {
+            const totalItems = oneDriveData.value.length;
+            const totalPeople = Object.keys(organizedData).length;
+            
+            let totalTypes = new Set();
+            Object.values(organizedData).forEach(person => {
+                Object.keys(person.types).forEach(type => totalTypes.add(type));
+            });
+            
+            return {
+                totalItems,
+                totalPeople,
+                totalTypes: totalTypes.size
+            };
+        }
+
+        function renderStats(stats) {
+            return `
+                <div class="stat-item">
+                    <div class="stat-number">${stats.totalItems}</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.totalPeople}</div>
+                    <div class="stat-label">People</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">${stats.totalTypes}</div>
+                    <div class="stat-label">Item Types</div>
+                </div>
+            `;
+        }
+
+        function renderContent(organizedData) {
+            let html = '';
+            
+            Object.entries(organizedData).forEach(([person, data]) => {
+                html += `
+                    <div class="person-section">
+                        <div class="person-header">
+                            <div class="person-name">👤 ${person}</div>
+                            <div class="person-email">${data.email}</div>
+                        </div>
+                `;
+                
+                Object.entries(data.types).forEach(([type, items]) => {
+                    html += `
+                        <div class="item-type-section">
+                            <div class="item-type-header">
+                                <span class="type-icon">${getTypeIcon(type)}</span>
+                                <span>${type} (${items.length})</span>
+                            </div>
+                            <div class="items-list">
+                    `;
+                    
+                    items.forEach(item => {
+                        const sharedDate = item.remoteItem && item.remoteItem.shared 
+                            ? formatDate(item.remoteItem.shared.sharedDateTime)
+                            : 'Unknown';
+                            
+                        html += `
+                            <div class="item">
+                                <div class="item-info">
+                                    <div class="item-name">${item.name}</div>
+                                    <div class="item-details">
+                                        Created: ${formatDate(item.createdDateTime)} • 
+                                        Modified: ${formatDate(item.lastModifiedDateTime)}
+                                    </div>
+                                </div>
+                                <div class="item-meta">
+                                    <div class="item-size">${formatFileSize(item.size)}</div>
+                                    <div class="shared-date">Shared: ${sharedDate}</div>
+                                    <a href="${item.webUrl}" target="_blank" class="link-button">Open</a>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+            
+            return html;
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            const organizedData = organizeData();
+            const stats = generateStats(organizedData);
+            
+            document.getElementById('stats').innerHTML = renderStats(stats);
+            document.getElementById('organized-content').innerHTML = renderContent(organizedData);
+        });
+    </script>
+</body>
+</html>
