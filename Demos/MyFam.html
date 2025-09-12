@@ -1,215 +1,897 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>OneDrive Shared Items Viewer</title>
-    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFam - Graph API Parser</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .person-section { margin: 20px 0; padding: 10px; border: 1px solid #ddd; }
-        .type-section { margin: 10px 0; padding: 10px; background: #f5f5f5; }
-        .item { margin: 5px 0; padding: 5px; display: flex; align-items: center; }
-        .thumbnail { width: 64px; height: 64px; object-fit: cover; margin-right: 12px; border-radius: 4px; border: 1px solid #ccc; }
-        #loginButton { padding: 10px; font-size: 16px; cursor: pointer; }
-        .details { font-size: 12px; color: #555; margin-left: 8px; }
-        .hidden { display: none; }
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --background-color: #f5f5f5;
+            --card-color: #ffffff;
+            --text-color: #323130;
+            --border-color: #edebe9;
+            --hover-color: #f3f2f1;
+            --selected-color: #deecf9;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.5;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .app-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px 24px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .app-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .app-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .input-section {
+            background-color: var(--card-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .input-section h2 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--primary-color);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            font-size: 14px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        button.secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        button.secondary:hover {
+            background-color: var(--hover-color);
+        }
+
+        .results-container {
+            display: none;
+            flex-direction: column;
+        }
+
+        .results-container.visible {
+            display: flex;
+        }
+
+        .results-tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .results-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .results-tab.active {
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .raw-output {
+            background-color: var(--card-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .raw-output pre {
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+
+        .visualized-output {
+            display: flex;
+            gap: 20px;
+            height: 70vh;
+        }
+
+        .people-panel {
+            background-color: var(--card-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            overflow-y: auto;
+        }
+
+        .panel-header {
+            padding: 16px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .people-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .person-item {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .person-item:hover {
+            background-color: var(--hover-color);
+        }
+
+        .person-item.selected {
+            background-color: var(--selected-color);
+        }
+
+        .person-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .person-info {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .person-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .person-email {
+            font-size: 12px;
+            color: #605e5c;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .files-panel {
+            background-color: var(--card-color);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .files-container {
+            padding: 16px;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .file-card {
+            background-color: var(--card-color);
+            border-radius: 2px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+
+        .file-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-thumbnail {
+            height: 150px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .file-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .file-thumbnail-placeholder {
+            color: #605e5c;
+            font-size: 24px;
+        }
+
+        .file-info {
+            padding: 12px;
+        }
+
+        .file-name {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .file-date {
+            font-size: 12px;
+            color: #605e5c;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            color: #605e5c;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .visualized-output {
+                flex-direction: column;
+                height: auto;
+            }
+
+            .people-panel {
+                width: 100%;
+                max-height: 300px;
+                margin-bottom: 20px;
+            }
+        }
     </style>
 </head>
 <body>
-    <button id="loginButton">Sign in with Microsoft</button>
-    <div id="content" class="hidden">
-        <h1>Shared Items</h1>
-        <div id="itemsContainer"></div>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>MyFam - Graph API Parser</h1>
+            <p>Paste your Graph API results to visualize shared files</p>
+        </header>
+
+        <main class="main-content">
+            <section class="input-section">
+                <h2>Paste Graph API Response</h2>
+                <textarea id="graphInput" placeholder="Paste your Microsoft Graph API JSON response here..."></textarea>
+                <div class="button-row">
+                    <button id="parseButton">Parse Data</button>
+                    <button id="clearButton" class="secondary">Clear</button>
+                    <button id="loadSampleButton" class="secondary">Load Sample Data</button>
+                </div>
+            </section>
+
+            <section id="resultsContainer" class="results-container">
+                <div class="results-tab-container">
+                    <div class="results-tab active" data-tab="visualized">Visualized View</div>
+                    <div class="results-tab" data-tab="raw">Raw JSON</div>
+                </div>
+
+                <div id="visualizedTab" class="tab-content active">
+                    <div class="visualized-output">
+                        <div class="people-panel">
+                            <div class="panel-header">People</div>
+                            <div id="peopleList" class="people-list">
+                                <!-- People items will be inserted here -->
+                            </div>
+                        </div>
+                        <div class="files-panel">
+                            <div class="panel-header" id="filesHeader">All Shared Files</div>
+                            <div class="files-container">
+                                <div id="filesGrid" class="files-grid">
+                                    <!-- File cards will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="rawTab" class="tab-content">
+                    <div class="raw-output">
+                        <pre id="jsonOutput"></pre>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <script>
-        // Using .default scope per your request
-        const GRAPH_SCOPES = ["https://graph.microsoft.com/.default"];
-        const msalConfig = {
-            auth: {
-                clientId: "9ba40cef-cb84-4bdd-b277-42c861dec363",
-                authority: "https://login.microsoftonline.com/common",
-                redirectUri: window.location.origin,
-            },
-            cache: {
-                cacheLocation: "sessionStorage",
-                storeAuthStateInCookie: false
-            }
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM elements
+            const graphInput = document.getElementById('graphInput');
+            const parseButton = document.getElementById('parseButton');
+            const clearButton = document.getElementById('clearButton');
+            const loadSampleButton = document.getElementById('loadSampleButton');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const jsonOutput = document.getElementById('jsonOutput');
+            const peopleList = document.getElementById('peopleList');
+            const filesGrid = document.getElementById('filesGrid');
+            const filesHeader = document.getElementById('filesHeader');
+            const resultsTabs = document.querySelectorAll('.results-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
 
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-        const loginButton = document.getElementById('loginButton');
-        const content = document.getElementById('content');
-        const itemsContainer = document.getElementById('itemsContainer');
+            // Store parsed data
+            let parsedData = null;
+            let selectedPersonId = null;
 
-        async function getToken() {
-            const accounts = msalInstance.getAllAccounts();
-            if (accounts.length === 0) throw new Error("No signed-in account");
-            try {
-                const silentResult = await msalInstance.acquireTokenSilent({
-                    account: accounts[0],
-                    scopes: GRAPH_SCOPES
+            // Tab switching
+            resultsTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    resultsTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const tabId = tab.getAttribute('data-tab');
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === tabId + 'Tab') {
+                            content.classList.add('active');
+                        }
+                    });
                 });
-                return silentResult.accessToken;
-            } catch (e) {
-                const popupResult = await msalInstance.acquireTokenPopup({
-                    scopes: GRAPH_SCOPES
-                });
-                return popupResult.accessToken;
-            }
-        }
-
-        loginButton.addEventListener('click', async () => {
-            try {
-                await msalInstance.loginPopup({ scopes: GRAPH_SCOPES });
-                const accessToken = await getToken();
-                await getSharedItems(accessToken);
-            } catch (error) {
-                console.error(error);
-                alert("Login failed: " + error.message);
-            }
-        });
-
-        async function getSharedItems(accessToken) {
-            try {
-                const response = await fetch('https://graph.microsoft.com/v1.0/me/drive/sharedWithMe', {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                const data = await response.json();
-                if (!Array.isArray(data.value)) throw new Error("Unexpected Graph API response");
-                loginButton.classList.add('hidden');
-                content.classList.remove('hidden');
-                organizeAndDisplayItems(data.value, accessToken);
-            } catch (error) {
-                console.error('Error fetching shared items:', error);
-                alert('Error fetching shared items: ' + error.message);
-            }
-        }
-
-        function isPicture(item) {
-            const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'webp'];
-            if (item.file && item.name) {
-                const ext = item.name.split('.').pop().toLowerCase();
-                return imageExtensions.includes(ext);
-            }
-            return false;
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const d = new Date(dateString);
-            return d.toLocaleString();
-        }
-
-        function getThumbnail(item) {
-            let thumb = null;
-            if (item.remoteItem?.thumbnails?.length > 0) {
-                thumb = item.remoteItem.thumbnails[0].medium?.url || item.remoteItem.thumbnails[0].small?.url;
-            } else if (item.thumbnails?.length > 0) {
-                thumb = item.thumbnails[0].medium?.url || item.thumbnails[0].small?.url;
-            }
-            return thumb;
-        }
-
-        function organizeAndDisplayItems(items, accessToken) {
-            const itemsByPerson = {};
-            items.forEach(item => {
-                const owner = item.remoteItem?.shared?.owner?.user?.displayName || 'Unknown';
-                if (!itemsByPerson[owner]) {
-                    itemsByPerson[owner] = [];
-                }
-                itemsByPerson[owner].push(item);
             });
 
-            itemsContainer.innerHTML = '';
+            // Parse button click handler
+            parseButton.addEventListener('click', () => {
+                try {
+                    const inputValue = graphInput.value.trim();
+                    if (!inputValue) {
+                        alert('Please paste Graph API response data first.');
+                        return;
+                    }
 
-            for (const person in itemsByPerson) {
-                const personSection = document.createElement('div');
-                personSection.className = 'person-section';
-                personSection.innerHTML = `<h2>${person}</h2>`;
+                    // Parse JSON
+                    parsedData = JSON.parse(inputValue);
+                    
+                    // Display results
+                    displayResults(parsedData);
+                    
+                    // Show results container
+                    resultsContainer.classList.add('visible');
+                } catch (error) {
+                    alert('Error parsing JSON: ' + error.message);
+                }
+            });
 
-                const pictures = [];
-                const others = {};
+            // Clear button click handler
+            clearButton.addEventListener('click', () => {
+                graphInput.value = '';
+                resultsContainer.classList.remove('visible');
+                parsedData = null;
+                selectedPersonId = null;
+            });
 
-                itemsByPerson[person].forEach(item => {
-                    if (isPicture(item)) {
-                        pictures.push(item);
-                    } else {
-                        let type = 'Other';
-                        if (item.folder) type = 'Folder';
-                        else if (item.file) type = 'File';
-                        else if (item.package?.type === 'oneNote') type = 'OneNote';
-                        if (!others[type]) {
-                            others[type] = [];
+            // Load sample data button click handler
+            loadSampleButton.addEventListener('click', () => {
+                graphInput.value = JSON.stringify(getSampleData(), null, 2);
+            });
+
+            // Function to display results
+            function displayResults(data) {
+                // Format and display raw JSON
+                jsonOutput.textContent = JSON.stringify(data, null, 2);
+                
+                // Process and display visualization
+                renderVisualization(data);
+            }
+
+            // Function to render visualization
+            function renderVisualization(data) {
+                // Clear previous content
+                peopleList.innerHTML = '';
+                filesGrid.innerHTML = '';
+                
+                // Process data - assuming data format similar to Microsoft Graph API
+                let items = [];
+                
+                // Handle different possible Graph API response formats
+                if (data.value && Array.isArray(data.value)) {
+                    items = data.value;
+                } else if (Array.isArray(data)) {
+                    items = data;
+                } else {
+                    // Single item or unknown format
+                    items = [data];
+                }
+                
+                // Extract people who shared files
+                const peopleMap = new Map();
+                
+                items.forEach(item => {
+                    // Try to extract sharing information
+                    const sharedBy = extractSharedByInfo(item);
+                    
+                    if (sharedBy && sharedBy.user) {
+                        const personId = sharedBy.user.id || sharedBy.user.email || sharedBy.user.displayName;
+                        
+                        if (!peopleMap.has(personId)) {
+                            peopleMap.set(personId, {
+                                id: personId,
+                                displayName: sharedBy.user.displayName || 'Unknown',
+                                email: sharedBy.user.email || '',
+                                items: []
+                            });
                         }
-                        others[type].push(item);
+                        
+                        peopleMap.get(personId).items.push(item);
                     }
                 });
-
-                if (pictures.length > 0) {
-                    const picSection = document.createElement('div');
-                    picSection.className = 'type-section';
-                    picSection.innerHTML = `<h3>Pictures</h3>`;
-                    pictures.forEach(item => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'item';
-                        const thumbUrl = getThumbnail(item);
-                        if (thumbUrl) {
-                            const img = document.createElement('img');
-                            img.className = 'thumbnail';
-                            img.src = thumbUrl;
-                            img.alt = 'Thumbnail';
-                            itemDiv.appendChild(img);
-                        }
-                        const itemLink = document.createElement('a');
-                        itemLink.href = item.webUrl;
-                        itemLink.target = '_blank';
-                        itemLink.textContent = item.name;
-                        itemDiv.appendChild(itemLink);
-                        const details = document.createElement('span');
-                        details.className = 'details';
-                        details.textContent = `Shared: ${formatDate(item.sharedDateTime || item.remoteItem?.shared?.sharedDateTime)}`;
-                        itemDiv.appendChild(details);
-
-                        picSection.appendChild(itemDiv);
+                
+                // Render people list
+                if (peopleMap.size === 0) {
+                    peopleList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👤</div>
+                            <p>No sharing information found in data</p>
+                        </div>
+                    `;
+                } else {
+                    // Add "All" option
+                    const allPeopleItem = document.createElement('div');
+                    allPeopleItem.className = 'person-item' + (selectedPersonId === null ? ' selected' : '');
+                    allPeopleItem.innerHTML = `
+                        <div class="person-avatar">All</div>
+                        <div class="person-info">
+                            <div class="person-name">All Shared Files</div>
+                            <div class="person-email">${items.length} files</div>
+                        </div>
+                    `;
+                    allPeopleItem.addEventListener('click', () => {
+                        document.querySelectorAll('.person-item').forEach(item => {
+                            item.classList.remove('selected');
+                        });
+                        allPeopleItem.classList.add('selected');
+                        selectedPersonId = null;
+                        renderFiles(items);
+                        filesHeader.textContent = 'All Shared Files';
                     });
-                    personSection.appendChild(picSection);
-                }
-
-                for (const type in others) {
-                    const typeSection = document.createElement('div');
-                    typeSection.className = 'type-section';
-                    typeSection.innerHTML = `<h3>${type}</h3>`;
-                    others[type].forEach(item => {
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'item';
-                        const itemLink = document.createElement('a');
-                        itemLink.href = item.webUrl;
-                        itemLink.target = '_blank';
-                        itemLink.textContent = item.name;
-                        itemDiv.appendChild(itemLink);
-                        const details = document.createElement('span');
-                        details.className = 'details';
-                        details.textContent = `Shared: ${formatDate(item.sharedDateTime || item.remoteItem?.shared?.sharedDateTime)}`;
-                        itemDiv.appendChild(details);
-                        typeSection.appendChild(itemDiv);
+                    peopleList.appendChild(allPeopleItem);
+                    
+                    // Add each person
+                    peopleMap.forEach(person => {
+                        const personItem = document.createElement('div');
+                        personItem.className = 'person-item' + (selectedPersonId === person.id ? ' selected' : '');
+                        
+                        // Get initials for avatar
+                        const initials = getInitials(person.displayName);
+                        
+                        personItem.innerHTML = `
+                            <div class="person-avatar">${initials}</div>
+                            <div class="person-info">
+                                <div class="person-name">${person.displayName}</div>
+                                <div class="person-email">${person.email || `${person.items.length} files`}</div>
+                            </div>
+                        `;
+                        
+                        personItem.addEventListener('click', () => {
+                            document.querySelectorAll('.person-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            personItem.classList.add('selected');
+                            selectedPersonId = person.id;
+                            renderFiles(person.items);
+                            filesHeader.textContent = `Files shared by ${person.displayName}`;
+                        });
+                        
+                        peopleList.appendChild(personItem);
                     });
-                    personSection.appendChild(typeSection);
                 }
-
-                itemsContainer.appendChild(personSection);
+                
+                // Render files (initially all files)
+                renderFiles(items);
             }
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            const accounts = msalInstance.getAllAccounts();
-            if (accounts.length > 0) {
-                try {
-                    const accessToken = await getToken();
-                    await getSharedItems(accessToken);
-                } catch (e) {
-                    loginButton.classList.remove('hidden');
-                    content.classList.add('hidden');
+            
+            // Function to render files
+            function renderFiles(items) {
+                filesGrid.innerHTML = '';
+                
+                if (!items || items.length === 0) {
+                    filesGrid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📁</div>
+                            <p>No files found</p>
+                        </div>
+                    `;
+                    return;
                 }
+                
+                // Filter for image files and other files
+                const imageFiles = items.filter(item => isImageFile(item));
+                const otherFiles = items.filter(item => !isImageFile(item));
+                
+                // Sort by date (newest first)
+                const sortedFiles = [...imageFiles, ...otherFiles].sort((a, b) => {
+                    const dateA = new Date(a.createdDateTime || a.lastModifiedDateTime || 0);
+                    const dateB = new Date(b.createdDateTime || b.lastModifiedDateTime || 0);
+                    return dateB - dateA;
+                });
+                
+                // Render each file
+                sortedFiles.forEach(item => {
+                    const fileCard = document.createElement('div');
+                    fileCard.className = 'file-card';
+                    
+                    const fileName = item.name || 'Unnamed File';
+                    const fileDate = formatDate(item.createdDateTime || item.lastModifiedDateTime);
+                    const thumbnailUrl = getThumbnailUrl(item);
+                    const isImage = isImageFile(item);
+                    
+                    fileCard.innerHTML = `
+                        <div class="file-thumbnail">
+                            ${thumbnailUrl ? 
+                                `<img src="${thumbnailUrl}" alt="${fileName}" />` :
+                                `<div class="file-thumbnail-placeholder">${isImage ? '🖼️' : '📄'}</div>`
+                            }
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name" title="${fileName}">${fileName}</div>
+                            <div class="file-date">${fileDate}</div>
+                        </div>
+                    `;
+                    
+                    // Open file URL if available
+                    if (item.webUrl) {
+                        fileCard.addEventListener('click', () => {
+                            window.open(item.webUrl, '_blank');
+                        });
+                    }
+                    
+                    filesGrid.appendChild(fileCard);
+                });
+            }
+            
+            // Helper function to extract initials from name
+            function getInitials(name) {
+                if (!name) return '?';
+                
+                const parts = name.split(' ');
+                if (parts.length === 1) {
+                    return parts[0].charAt(0).toUpperCase();
+                }
+                
+                return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            }
+            
+            // Helper function to format date
+            function formatDate(dateString) {
+                if (!dateString) return 'Unknown date';
+                
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return 'Invalid date';
+                
+                return date.toLocaleDateString(undefined, {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+            
+            // Helper function to check if item is an image file
+            function isImageFile(item) {
+                if (!item) return false;
+                
+                // Check file property if available
+                if (item.file && item.file.mimeType) {
+                    return item.file.mimeType.startsWith('image/');
+                }
+                
+                // Try to infer from name
+                if (item.name) {
+                    const extension = item.name.split('.').pop().toLowerCase();
+                    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension);
+                }
+                
+                return false;
+            }
+            
+            // Helper function to get thumbnail URL
+            function getThumbnailUrl(item) {
+                if (!item) return null;
+                
+                // Check thumbnails collection
+                if (item.thumbnails && item.thumbnails.length > 0) {
+                    if (item.thumbnails[0].medium && item.thumbnails[0].medium.url) {
+                        return item.thumbnails[0].medium.url;
+                    } else if (item.thumbnails[0].large && item.thumbnails[0].large.url) {
+                        return item.thumbnails[0].large.url;
+                    } else if (item.thumbnails[0].small && item.thumbnails[0].small.url) {
+                        return item.thumbnails[0].small.url;
+                    }
+                }
+                
+                // Check thumbnail property directly
+                if (item.thumbnail && item.thumbnail.url) {
+                    return item.thumbnail.url;
+                }
+                
+                return null;
+            }
+            
+            // Helper function to extract shared by information
+            function extractSharedByInfo(item) {
+                if (!item) return null;
+                
+                // Direct sharedBy property
+                if (item.sharedBy && item.sharedBy.user) {
+                    return item.sharedBy;
+                }
+                
+                // Check lastModifiedBy
+                if (item.lastModifiedBy && item.lastModifiedBy.user) {
+                    return {
+                        user: item.lastModifiedBy.user
+                    };
+                }
+                
+                // Check createdBy
+                if (item.createdBy && item.createdBy.user) {
+                    return {
+                        user: item.createdBy.user
+                    };
+                }
+                
+                // Check sharing info in permissions
+                if (item.permissions && Array.isArray(item.permissions)) {
+                    const sharingPermission = item.permissions.find(p => p.grantedTo && p.grantedTo.user);
+                    if (sharingPermission) {
+                        return {
+                            user: sharingPermission.grantedTo.user
+                        };
+                    }
+                }
+                
+                // Check remote item for sharing info
+                if (item.remoteItem) {
+                    if (item.remoteItem.shared && item.remoteItem.shared.owner && item.remoteItem.shared.owner.user) {
+                        return {
+                            user: item.remoteItem.shared.owner.user
+                        };
+                    }
+                    
+                    if (item.remoteItem.createdBy && item.remoteItem.createdBy.user) {
+                        return {
+                            user: item.remoteItem.createdBy.user
+                        };
+                    }
+                }
+                
+                return null;
+            }
+
+            // Sample data function
+            function getSampleData() {
+                return {
+                    "value": [
+                        {
+                            "id": "01ABCDEF1234567890ABCDEF",
+                            "name": "Family Vacation Photo.jpg",
+                            "webUrl": "https://example-tenant.sharepoint.com/personal/user_example_com/Documents/Family%20Vacation%20Photo.jpg",
+                            "createdDateTime": "2023-05-15T10:30:00Z",
+                            "lastModifiedDateTime": "2023-05-15T10:30:00Z",
+                            "file": {
+                                "mimeType": "image/jpeg"
+                            },
+                            "thumbnails": [
+                                {
+                                    "id": "0",
+                                    "medium": {
+                                        "height": 100,
+                                        "url": "https://via.placeholder.com/400x300/0078D4/FFFFFF?text=Vacation",
+                                        "width": 100
+                                    }
+                                }
+                            ],
+                            "sharedBy": {
+                                "user": {
+                                    "id": "user1",
+                                    "displayName": "John Smith",
+                                    "email": "john.smith@example.com"
+                                }
+                            }
+                        },
+                        {
+                            "id": "01ABCDEF1234567890ABCDE2",
+                            "name": "Birthday Party.jpg",
+                            "webUrl": "https://example-tenant.sharepoint.com/personal/user_example_com/Documents/Birthday%20Party.jpg",
+                            "createdDateTime": "2023-06-20T14:15:00Z",
+                            "lastModifiedDateTime": "2023-06-20T14:15:00Z",
+                            "file": {
+                                "mimeType": "image/jpeg"
+                            },
+                            "thumbnails": [
+                                {
+                                    "id": "0",
+                                    "medium": {
+                                        "height": 100,
+                                        "url": "https://via.placeholder.com/400x300/E81123/FFFFFF?text=Birthday",
+                                        "width": 100
+                                    }
+                                }
+                            ],
+                            "sharedBy": {
+                                "user": {
+                                    "id": "user1",
+                                    "displayName": "John Smith",
+                                    "email": "john.smith@example.com"
+                                }
+                            }
+                        },
+                        {
+                            "id": "01ABCDEF1234567890ABCDE3",
+                            "name": "Family Recipe.docx",
+                            "webUrl": "https://example-tenant.sharepoint.com/personal/user_example_com/Documents/Family%20Recipe.docx",
+                            "createdDateTime": "2023-04-10T09:00:00Z",
+                            "lastModifiedDateTime": "2023-04-10T09:00:00Z",
+                            "file": {
+                                "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            },
+                            "sharedBy": {
+                                "user": {
+                                    "id": "user2",
+                                    "displayName": "Jane Doe",
+                                    "email": "jane.doe@example.com"
+                                }
+                            }
+                        },
+                        {
+                            "id": "01ABCDEF1234567890ABCDE4",
+                            "name": "Wedding Photo.png",
+                            "webUrl": "https://example-tenant.sharepoint.com/personal/user_example_com/Documents/Wedding%20Photo.png",
+                            "createdDateTime": "2023-03-15T11:45:00Z",
+                            "lastModifiedDateTime": "2023-03-15T11:45:00Z",
+                            "file": {
+                                "mimeType": "image/png"
+                            },
+                            "thumbnails": [
+                                {
+                                    "id": "0",
+                                    "medium": {
+                                        "height": 100,
+                                        "url": "https://via.placeholder.com/400x300/107C10/FFFFFF?text=Wedding",
+                                        "width": 100
+                                    }
+                                }
+                            ],
+                            "sharedBy": {
+                                "user": {
+                                    "id": "user3",
+                                    "displayName": "Robert Johnson",
+                                    "email": "robert.johnson@example.com"
+                                }
+                            }
+                        },
+                        {
+                            "id": "01ABCDEF1234567890ABCDE5",
+                            "name": "Graduation Ceremony.jpg",
+                            "webUrl": "https://example-tenant.sharepoint.com/personal/user_example_com/Documents/Graduation%20Ceremony.jpg",
+                            "createdDateTime": "2023-07-05T16:30:00Z",
+                            "lastModifiedDateTime": "2023-07-05T16:30:00Z",
+                            "file": {
+                                "mimeType": "image/jpeg"
+                            },
+                            "thumbnails": [
+                                {
+                                    "id": "0",
+                                    "medium": {
+                                        "height": 100,
+                                        "url": "https://via.placeholder.com/400x300/FFB900/000000?text=Graduation",
+                                        "width": 100
+                                    }
+                                }
+                            ],
+                            "sharedBy": {
+                                "user": {
+                                    "id": "user2",
+                                    "displayName": "Jane Doe",
+                                    "email": "jane.doe@example.com"
+                                }
+                            }
+                        }
+                    ]
+                };
             }
         });
     </script>
