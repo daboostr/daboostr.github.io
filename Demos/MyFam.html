@@ -22,7 +22,7 @@
     </div>
 
     <script>
-        // Only include Graph resource scopes, not openid, profile, or offline_access
+        // Correct: Only user delegated scopes for browser-based apps
         const GRAPH_SCOPES = ["Files.Read.All", "Files.Read.Shared"];
         const msalConfig = {
             auth: {
@@ -108,8 +108,6 @@
 
         // Helper: get thumbnail url for a file item
         function getThumbnail(item) {
-            // Graph API provides thumbnails at item.remoteItem.thumbnails[0].medium.url if available
-            // Sometimes it's item.thumbnails, or you need to fetch /thumbnails endpoint; here, try direct
             let thumb = null;
             if (item.remoteItem?.thumbnails?.length > 0) {
                 thumb = item.remoteItem.thumbnails[0].medium?.url || item.remoteItem.thumbnails[0].small?.url;
@@ -121,7 +119,6 @@
 
         // Organize and display items
         function organizeAndDisplayItems(items, accessToken) {
-            // Group items by person (owner)
             const itemsByPerson = {};
             items.forEach(item => {
                 const owner = item.remoteItem?.shared?.owner?.user?.displayName || 'Unknown';
@@ -131,16 +128,13 @@
                 itemsByPerson[owner].push(item);
             });
 
-            // Clear container
             itemsContainer.innerHTML = '';
 
-            // Create sections for each person
             for (const person in itemsByPerson) {
                 const personSection = document.createElement('div');
                 personSection.className = 'person-section';
                 personSection.innerHTML = `<h2>${person}</h2>`;
 
-                // Group items into "Pictures" and "Other"
                 const pictures = [];
                 const others = {};
 
@@ -159,7 +153,6 @@
                     }
                 });
 
-                // Pictures section
                 if (pictures.length > 0) {
                     const picSection = document.createElement('div');
                     picSection.className = 'type-section';
@@ -167,8 +160,6 @@
                     pictures.forEach(item => {
                         const itemDiv = document.createElement('div');
                         itemDiv.className = 'item';
-
-                        // Thumbnail preview
                         const thumbUrl = getThumbnail(item);
                         if (thumbUrl) {
                             const img = document.createElement('img');
@@ -177,14 +168,11 @@
                             img.alt = 'Thumbnail';
                             itemDiv.appendChild(img);
                         }
-
-                        // File link and details
                         const itemLink = document.createElement('a');
                         itemLink.href = item.webUrl;
                         itemLink.target = '_blank';
                         itemLink.textContent = item.name;
                         itemDiv.appendChild(itemLink);
-
                         const details = document.createElement('span');
                         details.className = 'details';
                         details.textContent = `Shared: ${formatDate(item.sharedDateTime || item.remoteItem?.shared?.sharedDateTime)}`;
@@ -195,7 +183,6 @@
                     personSection.appendChild(picSection);
                 }
 
-                // Other types section
                 for (const type in others) {
                     const typeSection = document.createElement('div');
                     typeSection.className = 'type-section';
@@ -203,19 +190,15 @@
                     others[type].forEach(item => {
                         const itemDiv = document.createElement('div');
                         itemDiv.className = 'item';
-
-                        // File/folder link
                         const itemLink = document.createElement('a');
                         itemLink.href = item.webUrl;
                         itemLink.target = '_blank';
                         itemLink.textContent = item.name;
                         itemDiv.appendChild(itemLink);
-
                         const details = document.createElement('span');
                         details.className = 'details';
                         details.textContent = `Shared: ${formatDate(item.sharedDateTime || item.remoteItem?.shared?.sharedDateTime)}`;
                         itemDiv.appendChild(details);
-
                         typeSection.appendChild(itemDiv);
                     });
                     personSection.appendChild(typeSection);
@@ -225,7 +208,6 @@
             }
         }
 
-        // Optional: check if already logged in on page load
         window.addEventListener('DOMContentLoaded', async () => {
             const accounts = msalInstance.getAllAccounts();
             if (accounts.length > 0) {
@@ -233,7 +215,6 @@
                     const accessToken = await getToken();
                     await getSharedItems(accessToken);
                 } catch (e) {
-                    // No valid session, show login button
                     loginButton.classList.remove('hidden');
                     content.classList.add('hidden');
                 }
