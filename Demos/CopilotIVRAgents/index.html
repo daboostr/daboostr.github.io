@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IVR Orchestrator Demo — Open New Account</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+        <span>IVR Orchestrator Demo</span>
+      </div>
+      <div class="controls">
+        <button id="startBtn" class="btn primary">Start Simulation</button>
+        <button id="resetBtn" class="btn ghost" disabled>Reset</button>
+        <label class="toggle">
+          <input type="checkbox" id="fastMode" />
+          <span>Fast mode</span>
+        </label>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="call-panel card">
+        <div class="call-header">
+          <div class="party human" id="humanParty">
+            <div class="avatar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="8" r="4"></circle>
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" fill="none" stroke="currentColor" stroke-width="1.6" />
+              </svg>
+            </div>
+            <div class="label">
+              <span class="name">Human</span>
+              <span class="status" id="humanStatus">Idle</span>
+            </div>
+          </div>
+
+          <div class="call-visual">
+            <div class="wave"></div>
+          </div>
+
+          <div class="party ivr" id="ivrParty">
+            <div class="avatar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="4" y="3" width="16" height="12" rx="2" ry="2"></rect>
+                <rect x="8" y="17" width="8" height="4" rx="1"></rect>
+                <circle cx="9" cy="9" r="1.5" />
+                <circle cx="15" cy="9" r="1.5" />
+              </svg>
+            </div>
+            <div class="label">
+              <span class="name">IVR Agent</span>
+              <span class="status" id="ivrStatus">Idle</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="transcript" id="transcript" aria-live="polite" aria-label="Call transcript">
+          <!-- Messages will appear here -->
+        </div>
+      </section>
+
+      <section class="agents-panel card">
+        <div class="agents-header">
+          <h2>Downstream Agents</h2>
+          <div class="legend">
+            <span class="dot pending"></span> Pending
+            <span class="dot running"></span> Running
+            <span class="dot success"></span> Success
+            <span class="dot failed"></span> Failed
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="progress" id="globalProgress" style="width:0%"></div>
+        </div>
+
+        <div id="agentsList" class="agents-list">
+          <!-- Agent cards populated by script -->
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Scenario: Open a New Checking Account</span>
+      <span id="resultSummary"></span>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
