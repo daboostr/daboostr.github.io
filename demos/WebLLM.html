@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>WebLLM</title>
-  <!-- WebLLM (MLC) CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/dist/index.min.js"></script>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem; }
     textarea { width: 100%; max-width: 900px; }
@@ -14,6 +12,7 @@
     pre { background: #f6f8fa; padding: 1rem; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; max-width: 900px; }
     .row { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
     .small { font-size: 0.9rem; color: #666; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
   </style>
 </head>
 <body>
@@ -22,6 +21,8 @@
   <div class="row small">
     Tip: First load downloads model weights and can take a minute (cached afterwards).
   </div>
+
+  <div class="row small mono" id="env">Detecting environment…</div>
 
   <div class="row">
     <label for="model">Model:</label>
@@ -46,141 +47,186 @@
   </div>
 
   <script>
-    const inputEl = document.getElementById('input');
-    const runBtn = document.getElementById('run');
-    const outputEl = document.getElementById('output');
-    const statusEl = document.getElementById('status');
-    const modelSel = document.getElementById('model');
-
-    let engine = null;
-    let currentModel = null;
-    let loading = false;
-    let usingWorker = false;
-
-    function setStatus(text) { statusEl.textContent = text || ''; }
-    function setRunning(running) {
-      runBtn.disabled = running;
-      runBtn.textContent = running ? 'Running…' : 'Run LLM';
+    // --- Helper to ensure WebLLM library is available ---
+    function setEnvInfo() {
+      const el = document.getElementById('env');
+      const env = {
+        secure: !!window.isSecureContext,
+        coi: !!window.crossOriginIsolated,
+        webgpu: 'gpu' in navigator,
+      };
+      el.textContent = `Env — secure:${env.secure} coi:${env.coi} webgpu:${env.webgpu}`;
     }
-    function log(...args) { try { console.log('[WebLLM]', ...args); } catch {} }
+    setEnvInfo();
 
-    // Only try worker when the page is cross-origin isolated (not true on GitHub Pages)
-    function canTryWorker() {
-      return typeof Worker !== 'undefined'
-        && window.isSecureContext === true
-        && window.crossOriginIsolated === true;
-    }
-
-    function extractText(reply) {
-      if (!reply) return '';
-      let text = reply?.choices?.[0]?.message?.content;
-      if (text) return text;
-      text = reply?.output_text || reply?.text || reply?.choices?.[0]?.text;
-      if (text) return text;
-      try { return JSON.stringify(reply); } catch { return String(reply); }
-    }
-
-    async function createEngineWithWorker(modelId) {
-      const workerURL = '/assets/webllm/worker-proxy.js';
-      const worker = new Worker(workerURL, { type: 'module' });
-      worker.onerror = (e) => console.error('Worker error:', e);
-      const eng = await webllm.CreateWebWorkerMLCEngine(worker, modelId, {
-        initProgressCallback: (progress) => {
-          const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
-          const text = progress?.text || 'Loading';
-          setStatus(pct ? `${text} (${pct}%)` : text);
-          log('Init progress (worker):', progress);
-        },
+    function loadScript(src, attrs = {}) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        Object.assign(s, attrs);
+        s.src = src;
+        s.onload = () => resolve();
+        s.onerror = (e) => reject(e);
+        document.head.appendChild(s);
       });
-      usingWorker = true;
-      return eng;
     }
 
-    async function createEngineMainThread(modelId) {
-      const eng = await webllm.CreateMLCEngine(modelId, {
-        initProgressCallback: (progress) => {
-          const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
-          const text = progress?.text || 'Loading';
-          setStatus(pct ? `${text} (${pct}%)` : text);
-          log('Init progress (main):', progress);
-        },
-      });
-      usingWorker = false;
-      return eng;
-    }
-
-    async function ensureEngine(modelId) {
-      if (engine && currentModel === modelId) return engine;
-
-      setStatus('Preparing engine…');
-
-      // Prefer main thread on non-isolated pages (like GitHub Pages)
-      const tryWorker = canTryWorker();
-
-      if (tryWorker) {
-        try {
-          // Hard timeout to avoid hanging if worker can’t init
-          const timeoutMs = 7000;
-          engine = await Promise.race([
-            createEngineWithWorker(modelId),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Worker init timeout')), timeoutMs)),
-          ]);
-        } catch (e) {
-          console.warn('Worker init failed, falling back to main thread.', e);
-          setStatus('Worker failed; using main thread.');
-          engine = await createEngineMainThread(modelId);
-        }
-      } else {
-        engine = await createEngineMainThread(modelId);
-        if (!window.crossOriginIsolated) {
-          log('Page not cross-origin isolated; running on main thread.');
-        }
-      }
-
-      currentModel = modelId;
-      setStatus('Model ready' + (usingWorker ? ' (worker).' : ' (main thread).'));
-      return engine;
-    }
-
-    runBtn.addEventListener('click', async () => {
-      const prompt = (inputEl.value || '').trim();
-      if (!prompt) {
-        inputEl.focus();
-        return;
-      }
-      if (loading) return;
-
-      loading = true;
-      setRunning(true);
-      outputEl.textContent = '';
+    async function loadWebLLM() {
+      if (window.webllm) return window.webllm;
+      const BASE = 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.74/dist';
+      // Try UMD global first
       try {
-        const modelId = modelSel.value;
-        const eng = await ensureEngine(modelId);
-
-        setStatus('Generating…');
-
-        const reply = await eng.chat.completions.create({
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 512,
-        });
-
-        const text = extractText(reply);
-        outputEl.textContent = text || '(No text returned)';
-        setStatus('Done.');
-      } catch (err) {
-        console.error(err);
-        outputEl.textContent = '';
-        setStatus('Error: ' + (err && err.message ? err.message : String(err)));
-      } finally {
-        loading = false;
-        setRunning(false);
+        await loadScript(`${BASE}/index.min.js`);
+        if (window.webllm) return window.webllm;
+      } catch (e) {
+        console.warn('UMD load failed:', e);
       }
-    });
-
-    if (!('gpu' in navigator)) {
-      setStatus('WebGPU not detected; loading may be slower or unsupported.');
+      // Fallback: ESM import via module script and expose to window
+      await new Promise((resolve, reject) => {
+        const m = document.createElement('script');
+        m.type = 'module';
+        m.textContent = `import * as mod from '${BASE}/index.js'; window.webllm = window.webllm || mod; window.dispatchEvent(new Event('webllm-ready'));`;
+        document.head.appendChild(m);
+        const to = setTimeout(() => reject(new Error('ESM load timeout')), 12000);
+        window.addEventListener('webllm-ready', () => { clearTimeout(to); resolve(); }, { once: true });
+      });
+      if (!window.webllm) throw new Error('Failed to initialize WebLLM library');
+      return window.webllm;
     }
+
+    // --- App logic (runs after WebLLM is ready) ---
+    function initApp() {
+      const inputEl = document.getElementById('input');
+      const runBtn = document.getElementById('run');
+      const outputEl = document.getElementById('output');
+      const statusEl = document.getElementById('status');
+      const modelSel = document.getElementById('model');
+
+      let engine = null;
+      let currentModel = null;
+      let loading = false;
+      let usingWorker = false;
+
+      function setStatus(text) { statusEl.textContent = text || ''; }
+      function setRunning(running) {
+        runBtn.disabled = running;
+        runBtn.textContent = running ? 'Running…' : 'Run LLM';
+      }
+      function log(...args) { try { console.log('[WebLLM]', ...args); } catch {} }
+
+      function canTryWorker() {
+        return typeof Worker !== 'undefined' && window.isSecureContext === true && window.crossOriginIsolated === true;
+      }
+
+      function extractText(reply) {
+        if (!reply) return '';
+        let text = reply?.choices?.[0]?.message?.content;
+        if (text) return text;
+        text = reply?.output_text || reply?.text || reply?.choices?.[0]?.text;
+        if (text) return text;
+        try { return JSON.stringify(reply); } catch { return String(reply); }
+      }
+
+      async function createEngineWithWorker(modelId) {
+        const workerURL = '/assets/webllm/worker-proxy.js';
+        const worker = new Worker(workerURL, { type: 'module' });
+        worker.onerror = (e) => console.error('Worker error:', e);
+        const eng = await window.webllm.CreateWebWorkerMLCEngine(worker, modelId, {
+          initProgressCallback: (progress) => {
+            const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
+            const text = progress?.text || 'Loading';
+            setStatus(pct ? `${text} (${pct}%)` : text);
+            log('Init progress (worker):', progress);
+          },
+        });
+        usingWorker = true;
+        return eng;
+      }
+
+      async function createEngineMainThread(modelId) {
+        const eng = await window.webllm.CreateMLCEngine(modelId, {
+          initProgressCallback: (progress) => {
+            const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
+            const text = progress?.text || 'Loading';
+            setStatus(pct ? `${text} (${pct}%)` : text);
+            log('Init progress (main):', progress);
+          },
+        });
+        usingWorker = false;
+        return eng;
+      }
+
+      async function ensureEngine(modelId) {
+        if (engine && currentModel === modelId) return engine;
+        setStatus('Preparing engine…');
+        const tryWorker = canTryWorker();
+        if (tryWorker) {
+          try {
+            const timeoutMs = 7000;
+            engine = await Promise.race([
+              createEngineWithWorker(modelId),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Worker init timeout')), timeoutMs)),
+            ]);
+          } catch (e) {
+            console.warn('Worker init failed, falling back to main thread.', e);
+            setStatus('Worker failed; using main thread.');
+            engine = await createEngineMainThread(modelId);
+          }
+        } else {
+          engine = await createEngineMainThread(modelId);
+          if (!window.crossOriginIsolated) {
+            log('Page not cross-origin isolated; running on main thread.');
+          }
+        }
+        currentModel = modelId;
+        setStatus('Model ready' + (usingWorker ? ' (worker).' : ' (main thread).'));
+        return engine;
+      }
+
+      runBtn.addEventListener('click', async () => {
+        const prompt = (inputEl.value || '').trim();
+        if (!prompt) { inputEl.focus(); return; }
+        if (loading) return;
+        loading = true;
+        setRunning(true);
+        outputEl.textContent = '';
+        try {
+          const modelId = modelSel.value;
+          const eng = await ensureEngine(modelId);
+          setStatus('Generating…');
+          const reply = await eng.chat.completions.create({
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            max_tokens: 512,
+          });
+          const text = extractText(reply);
+          outputEl.textContent = text || '(No text returned)';
+          setStatus('Done.');
+        } catch (err) {
+          console.error(err);
+          outputEl.textContent = '';
+          setStatus('Error: ' + (err && err.message ? err.message : String(err)));
+        } finally {
+          loading = false;
+          setRunning(false);
+        }
+      });
+
+      if (!('gpu' in navigator)) {
+        setStatus('WebGPU not detected; loading may be slower or unsupported.');
+      }
+    }
+
+    // Boot: load library then init app
+    (async () => {
+      try {
+        await loadWebLLM();
+        initApp();
+      } catch (e) {
+        console.error('Failed to load WebLLM:', e);
+        const statusEl = document.getElementById('status');
+        statusEl.textContent = 'Error loading WebLLM library. See console for details.';
+      }
+    })();
   </script>
 </body>
 </html>
