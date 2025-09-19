@@ -74,16 +74,39 @@
     async function loadWebLLM() {
       if (window.webllm) return window.webllm;
       try {
+        // Load the vendored UMD bundle
         await loadScript('/assets/webllm/index.min.js');
+        // Some bundles expose a different global name — normalize to window.webllm
+        window.webllm = window.webllm || window.WebLLM || window.mlc || window.MLC;
       } catch (e) {
-        const msg = 'Vendored WebLLM not found at /assets/webllm/index.min.js. Open the GitHub Actions tab and run the "Vendor WebLLM" workflow to populate it.';
+        const msg = 'Vendored WebLLM not found at /assets/webllm/index.min.js.';
         console.error(msg, e);
         throw new Error(msg);
       }
       if (!window.webllm) {
-        throw new Error('WebLLM library loaded but window.webllm is undefined.');
+        throw new Error('WebLLM script loaded, but no global was found (expected window.webllm or window.WebLLM). If this persists, replace assets/webllm/index.min.js with the UMD from https://unpkg.com/@mlc-ai/web-llm@0.2.79/dist/index.min.js');
       }
       return window.webllm;
+    }
+
+    // Attempt engine creation without Web Worker (GitHub Pages isn’t cross-origin isolated)
+    async function createEngineNoWorker(webllmObj, modelId, baseOpts) {
+      const attempts = [
+        { useWebWorker: false },
+        { worker: false },
+        { use_web_worker: false },
+      ];
+      let lastErr = null;
+      for (const extra of attempts) {
+        try {
+          return await webllmObj.CreateMLCEngine(modelId, { ...baseOpts, ...extra });
+        } catch (e) {
+          lastErr = e;
+          console.warn('CreateMLCEngine attempt failed with options', extra, e);
+        }
+      }
+      if (lastErr) throw lastErr;
+      throw new Error('Failed to create engine (no error detail).');
     }
 
     // App logic (main-thread only on GitHub Pages)
@@ -120,14 +143,16 @@
           throw new Error('Vendored WebLLM library not loaded (window.webllm is undefined).');
         }
         setStatus('Preparing engine…');
-        engine = await window.webllm.CreateMLCEngine(modelId, {
+        const baseOpts = {
           initProgressCallback: (progress) => {
             const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
             const text = progress?.text || 'Loading';
             setStatus(pct ? `${text} (${pct}%)` : text);
             log('Init progress (main):', progress);
           },
-        });
+          logLevel: 'info',
+        };
+        engine = await createEngineNoWorker(window.webllm, modelId, baseOpts);
         currentModel = modelId;
         setStatus('Model ready (main thread).');
         return engine;
@@ -163,7 +188,7 @@
       });
 
       if (!('gpu' in navigator)) {
-        setStatus('WebGPU not detected; loading may be slower or unsupported.');
+        setStatus('WebGPU not detected; please use Chrome/Edge (desktop) version 121+ with WebGPU enabled.');
       }
     }
 
@@ -175,7 +200,7 @@
       } catch (e) {
         console.error('Failed to load WebLLM:', e);
         const statusEl = document.getElementById('status');
-        statusEl.textContent = 'Error loading vendored WebLLM library. Go to Actions > Vendor WebLLM, run it, then hard refresh this page.';
+        statusEl.textContent = 'Error loading vendored WebLLM library. See console for details.';
       }
     })();
   </script>
