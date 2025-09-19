@@ -17,134 +17,30 @@
       --panel: #f8fafc;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-    }
-    header {
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    .env {
-      color: var(--muted);
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 13px;
-    }
-    .container {
-      padding: 20px;
-    }
-    .layout {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 16px;
-      min-height: calc(100vh - 80px);
-    }
-    @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
-    }
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 20px;
-    }
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
+    body { margin: 0; background: var(--bg); color: var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .env { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 13px; }
+    .container { padding: 20px; }
+    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; min-height: calc(100vh - 80px); }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    h1 { margin: 0; font-size: 20px; }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
     label { font-weight: 600; }
-    select, textarea, input[type="text"] {
-      width: 100%;
-      max-width: 900px;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: #fff;
-      font: inherit;
-    }
-    textarea {
-      min-height: 140px;
-      resize: vertical;
-    }
-    button {
-      padding: 10px 14px;
-      border: 1px solid var(--border);
-      background: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button.primary {
-      background: var(--accent);
-      color: #fff;
-      border-color: var(--accent);
-    }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    .status {
-      min-height: 1.2em;
-      color: var(--muted);
-    }
+    select, textarea { width: 100%; max-width: 900px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: #fff; font: inherit; }
+    textarea { min-height: 140px; resize: vertical; }
+    button { padding: 10px 14px; border: 1px solid var(--border); background: #fff; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status { min-height: 1.2em; color: var(--muted); }
     .status.good { color: var(--good); }
     .status.bad { color: var(--bad); }
     .status.warn { color: var(--warn); }
-
-    .progress {
-      height: 8px;
-      background: #e5e7eb;
-      border-radius: 999px;
-      overflow: hidden;
-      width: 100%;
-    }
-    .progress > .bar {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #60a5fa, #2563eb);
-      transition: width 120ms ease;
-    }
-
-    .console {
-      display: flex;
-      flex-direction: column;
-      min-height: 40vh;
-    }
-    .console-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    .console-view {
-      background: #0b1220;
-      color: #e5e7eb;
-      border: 1px solid #1f2937;
-      border-radius: 8px;
-      padding: 10px;
-      height: 100%;
-      min-height: 360px;
-      overflow: auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      line-height: 1.35;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+    .progress { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; width: 100%; }
+    .progress > .bar { height: 100%; width: 0%; background: linear-gradient(90deg, #60a5fa, #2563eb); transition: width 120ms ease; }
+    .console { display: flex; flex-direction: column; min-height: 40vh; }
+    .console-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .console-view { background: #0b1220; color: #e5e7eb; border: 1px solid #1f2937; border-radius: 8px; padding: 10px; height: 100%; min-height: 360px; overflow: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; line-height: 1.35; white-space: pre-wrap; word-break: break-word; }
     .log-line { opacity: 0.95; }
     .log-time { color: #9ca3af; }
     .log-info { color: #c7d2fe; }
@@ -162,7 +58,6 @@
 
   <div class="container">
     <div class="layout">
-      <!-- Main app (2/3) -->
       <section class="card">
         <div class="row">
           <label for="model">Model</label>
@@ -202,7 +97,6 @@
         </div>
       </section>
 
-      <!-- Console (1/3) -->
       <aside class="console">
         <div class="console-header">
           <strong>Console</strong>
@@ -220,7 +114,6 @@
   </div>
 
   <script>
-    // --- Utilities & UI helpers ------------------------------------------------
     const $ = (id) => document.getElementById(id);
     const envEl = $('env');
     const statusEl = $('status');
@@ -234,11 +127,7 @@
     const reinitBtn = $('reinit');
     const modelSel = $('model');
 
-    function nowTime() {
-      const d = new Date();
-      return d.toLocaleTimeString([], { hour12: false });
-    }
-
+    function nowTime() { return new Date().toLocaleTimeString([], { hour12: false }); }
     function uiLog(level, msg, obj) {
       const line = document.createElement('div');
       line.className = `log-line log-${level}`;
@@ -248,128 +137,95 @@
       const m = document.createElement('span');
       m.className = `log-${level}`;
       m.textContent = typeof msg === 'string' ? msg : JSON.stringify(msg);
-      line.appendChild(t);
-      line.appendChild(m);
-
+      line.appendChild(t); line.appendChild(m);
       if (obj !== undefined) {
-        const d = document.createElement('div');
-        d.style.marginLeft = '10px';
-        d.className = 'muted';
-        try {
-          d.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj);
-        } catch {
-          d.textContent = String(obj);
-        }
+        const d = document.createElement('div'); d.style.marginLeft = '10px'; d.className = 'muted';
+        try { d.textContent = typeof obj === 'string' ? obj : JSON.stringify(obj); } catch { d.textContent = String(obj); }
         line.appendChild(d);
       }
-
-      consoleEl.appendChild(line);
-      consoleEl.scrollTop = consoleEl.scrollHeight;
+      consoleEl.appendChild(line); consoleEl.scrollTop = consoleEl.scrollHeight;
     }
-
-    // Mirror console to UI (non-invasive)
     ['log','info','warn','error'].forEach((method) => {
       const orig = console[method].bind(console);
-      console[method] = (...args) => {
-        try {
-          uiLog(method === 'log' ? 'info' : method, args[0], args[1]);
-        } catch {}
-        orig(...args);
-      };
+      console[method] = (...args) => { try { uiLog(method === 'log' ? 'info' : method, args[0], args[1]); } catch {} orig(...args); };
     });
 
     function setEnvInfo() {
-      const env = {
-        secure: !!window.isSecureContext,
-        coi: !!window.crossOriginIsolated,
-        webgpu: 'gpu' in navigator,
-        ua: navigator.userAgent
-      };
+      const env = { secure: !!window.isSecureContext, coi: !!window.crossOriginIsolated, webgpu: 'gpu' in navigator, ua: navigator.userAgent };
       envEl.textContent = `Env — secure:${env.secure} coi:${env.coi} webgpu:${env.webgpu}`;
       uiLog('info', 'Environment', env);
-      if (!env.webgpu) {
-        uiLog('warn', 'WebGPU not detected; please use Chrome/Edge desktop v121+ and ensure WebGPU is enabled.');
-      }
+      if (!env.webgpu) uiLog('warn', 'WebGPU not detected; please use Chrome/Edge desktop v121+ with WebGPU enabled.');
     }
+    function setStatus(text, type) { statusEl.classList.remove('good','bad','warn'); if (type) statusEl.classList.add(type); statusEl.textContent = text || ''; }
+    function setRunStatus(text, type) { runStatusEl.classList.remove('good','bad','warn'); if (type) runStatusEl.classList.add(type); runStatusEl.textContent = text || ''; }
+    function setProgress(p, text) { const pct = Math.max(0, Math.min(1, p || 0)); progressBar.style.width = `${Math.round(pct * 100)}%`; if (text) setStatus(text); }
+    function enableInput(b) { inputEl.disabled = !b; runBtn.disabled = !b; stopBtn.disabled = !b; }
 
-    function setStatus(text, type) {
-      statusEl.classList.remove('good','bad','warn');
-      if (type) statusEl.classList.add(type);
-      statusEl.textContent = text || '';
-    }
-
-    function setRunStatus(text, type) {
-      runStatusEl.classList.remove('good','bad','warn');
-      if (type) runStatusEl.classList.add(type);
-      runStatusEl.textContent = text || '';
-    }
-
-    function setProgress(pct01, text) {
-      const pct = Math.max(0, Math.min(1, pct01 || 0));
-      progressBar.style.width = `${Math.round(pct * 100)}%`;
-      if (text) setStatus(text);
-    }
-
-    function enableInput(enabled) {
-      inputEl.disabled = !enabled;
-      runBtn.disabled = !enabled;
-      stopBtn.disabled = !enabled;
-    }
-
-    // --- Load vendored WebLLM UMD ------------------------------------------------
     function loadScript(src, attrs = {}) {
       return new Promise((resolve, reject) => {
         const s = document.createElement('script');
         Object.assign(s, attrs);
-        s.src = src;
-        s.async = true;
-        s.onload = () => resolve();
-        s.onerror = (e) => reject(e);
+        s.src = src; s.async = true;
+        s.onload = () => resolve(); s.onerror = (e) => reject(e);
         document.head.appendChild(s);
       });
     }
 
+    // Load vendored library with robust fallback for non-UMD builds
     async function loadWebLLM() {
       if (window.webllm) return window.webllm;
-      setStatus('Loading WebLLM library…');
-      uiLog('info', 'Step: Load WebLLM UMD from /assets/webllm/index.min.js');
-      await loadScript('/assets/webllm/index.min.js');
-      // Normalize potential global names
-      window.webllm = window.webllm || window.WebLLM || window.mlc || window.MLC;
-      if (!window.webllm) {
-        throw new Error('WebLLM UMD loaded but no global found (expected window.webllm or window.WebLLM).');
+
+      // 1) Try as UMD via <script>
+      try {
+        setStatus('Loading WebLLM library…');
+        uiLog('info', 'Step: Load WebLLM UMD from /assets/webllm/index.min.js');
+        await loadScript('/assets/webllm/index.min.js');
+        window.webllm = window.webllm || window.WebLLM || window.mlc || window.MLC;
+        if (window.webllm) {
+          uiLog('info', 'WebLLM library loaded as UMD.');
+          return window.webllm;
+        }
+      } catch (e) {
+        uiLog('warn', 'UMD script tag failed to load', e && (e.message || String(e)));
       }
-      uiLog('info', 'WebLLM library loaded.');
-      return window.webllm;
+
+      // 2) Try as ESM via dynamic import and construct a compatible global
+      try {
+        uiLog('info', 'UMD global not found — attempting ESM import fallback.');
+        const mod = await import('/assets/webllm/index.min.js');
+        // Try a few shapes to build a minimal webllm facade
+        const candidate = mod?.default || mod;
+        const CreateMLCEngine = candidate?.CreateMLCEngine || mod?.CreateMLCEngine;
+        if (CreateMLCEngine) {
+          window.webllm = Object.assign({ CreateMLCEngine }, candidate, mod);
+          uiLog('info', 'WebLLM loaded via ESM import fallback.');
+          return window.webllm;
+        }
+        uiLog('warn', 'ESM import succeeded but did not expose CreateMLCEngine.');
+      } catch (e) {
+        uiLog('warn', 'ESM import fallback failed', e && (e.message || String(e)));
+      }
+
+      // 3) Give actionable guidance
+      const guidance = 'Vendored file is not a UMD build. Replace assets/webllm/index.min.js with the UMD file: https://unpkg.com/@mlc-ai/web-llm@0.2.79/dist/index.min.js';
+      uiLog('error', guidance);
+      throw new Error('WebLLM UMD/module loaded but no usable global/exports found. ' + guidance);
     }
 
-    // --- Engine init (force main thread; GitHub Pages lacks COOP/COEP) ----------
     async function createEngineNoWorker(webllmObj, modelId, baseOpts) {
-      const attempts = [
-        { useWebWorker: false },
-        { worker: false },
-        { use_web_worker: false },
-      ];
+      const attempts = [{ useWebWorker: false }, { worker: false }, { use_web_worker: false }];
       let lastErr = null;
       for (const extra of attempts) {
         try {
           uiLog('info', 'CreateMLCEngine attempt', extra);
-          const eng = await webllmObj.CreateMLCEngine(modelId, { ...baseOpts, ...extra });
-          return eng;
-        } catch (e) {
-          lastErr = e;
-          console.warn('CreateMLCEngine failed with options', extra, e);
-        }
+          return await webllmObj.CreateMLCEngine(modelId, { ...baseOpts, ...extra });
+        } catch (e) { lastErr = e; console.warn('CreateMLCEngine failed with options', extra, e); }
       }
       if (lastErr) throw lastErr;
       throw new Error('Failed to create engine (no error detail).');
     }
 
-    // --- App logic ---------------------------------------------------------------
-    let engine = null;
-    let currentModel = null;
-    let generating = false;
-    let abortController = null;
+    let engine = null, currentModel = null, generating = false, abortController = null;
 
     async function initialize(modelId) {
       try {
@@ -401,8 +257,7 @@
         enableInput(true);
         inputEl.focus();
       } catch (e) {
-        engine = null;
-        currentModel = null;
+        engine = null; currentModel = null;
         setStatus('Initialization failed. See console for details.', 'bad');
         uiLog('error', 'Initialization error', e && (e.message || String(e)));
       }
@@ -415,74 +270,40 @@
       if (generating) return;
 
       generating = true;
-      runBtn.disabled = true;
-      stopBtn.disabled = false;
-      setRunStatus('Generating…');
-      outputEl.textContent = '';
+      runBtn.disabled = true; stopBtn.disabled = false;
+      setRunStatus('Generating…'); outputEl.textContent = '';
 
       try {
         abortController = new AbortController();
         const reply = await engine.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 512,
-          // signal: abortController.signal, // Only if supported by version
+          temperature: 0.7, max_tokens: 512,
         });
-        const text =
-          reply?.choices?.[0]?.message?.content ??
-          reply?.output_text ?? reply?.text ?? reply?.choices?.[0]?.text ?? '';
+        const text = reply?.choices?.[0]?.message?.content ?? reply?.output_text ?? reply?.text ?? reply?.choices?.[0]?.text ?? '';
         outputEl.textContent = text || '(No text returned)';
-        setRunStatus('Done.', 'good');
-        uiLog('info', 'Generation completed.');
+        setRunStatus('Done.', 'good'); uiLog('info', 'Generation completed.');
       } catch (e) {
         const msg = e && e.message ? e.message : String(e);
-        setRunStatus('Error: ' + msg, 'bad');
-        uiLog('error', 'Generation error', msg);
+        setRunStatus('Error: ' + msg, 'bad'); uiLog('error', 'Generation error', msg);
       } finally {
-        generating = false;
-        runBtn.disabled = false;
-        stopBtn.disabled = true;
-        abortController = null;
+        generating = false; runBtn.disabled = false; stopBtn.disabled = true; abortController = null;
       }
     }
 
-    function stopGeneration() {
-      try {
-        if (abortController) {
-          abortController.abort();
-          uiLog('warn', 'Generation aborted.');
-        }
-      } catch {}
-    }
+    function stopGeneration() { try { if (abortController) { abortController.abort(); uiLog('warn', 'Generation aborted.'); } } catch {} }
 
-    // --- Wire up UI -------------------------------------------------------------
     (function main() {
       setEnvInfo();
-
-      $('clearLogs').addEventListener('click', () => {
-        consoleEl.textContent = '';
-      });
+      $('clearLogs').addEventListener('click', () => { consoleEl.textContent = ''; });
       $('copyLogs').addEventListener('click', async () => {
         const text = consoleEl.innerText || '';
-        try {
-          await navigator.clipboard.writeText(text);
-          uiLog('info', 'Console copied to clipboard.');
-        } catch {
-          uiLog('warn', 'Failed to copy console to clipboard.');
-        }
+        try { await navigator.clipboard.writeText(text); uiLog('info', 'Console copied to clipboard.'); }
+        catch { uiLog('warn', 'Failed to copy console to clipboard.'); }
       });
-
       runBtn.addEventListener('click', runPrompt);
       stopBtn.addEventListener('click', stopGeneration);
-      inputEl.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPrompt();
-      });
-      reinitBtn.addEventListener('click', () => {
-        uiLog('info', 'Reinitialize requested.');
-        initialize(modelSel.value);
-      });
-
-      // Auto-initialize on load
+      inputEl.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runPrompt(); });
+      reinitBtn.addEventListener('click', () => { uiLog('info', 'Reinitialize requested.'); initialize(modelSel.value); });
       initialize(modelSel.value);
     })();
   </script>
