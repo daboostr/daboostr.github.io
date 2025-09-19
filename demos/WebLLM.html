@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebLLM Browser Demo</title>
+  <style>
+    :root {
+      --primary-color: #0078d4;
+      --secondary-color: #106ebe;
+      --background-color: #f5f5f5;
+      --card-color: #ffffff;
+      --text-color: #323130;
+      --border-color: #edebe9;
+      --hover-color: #f3f2f1;
+      --selected-color: #deecf9;
+      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      --error-color: #d13438;
+      --success-color: #107c10;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.5;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--card-color);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      padding: 24px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: var(--primary-color);
+      text-align: center;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      min-width: 60px;
+    }
+
+    select, textarea, button {
+      font-family: var(--font-family);
+      font-size: 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    select {
+      padding: 8px 12px;
+      flex: 1;
+      background-color: white;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: var(--secondary-color);
+    }
+
+    button:disabled {
+      background-color: #d2d0ce;
+      cursor: not-allowed;
+    }
+
+    .status {
+      font-size: 14px;
+      margin-left: 12px;
+      font-style: italic;
+      color: var(--primary-color);
+    }
+
+    .status.error {
+      color: var(--error-color);
+    }
+
+    .status.success {
+      color: var(--success-color);
+    }
+
+    #output {
+      background-color: var(--background-color);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 12px;
+      min-height: 150px;
+      white-space: pre-wrap;
+      font-family: var(--font-family);
+      margin-top: 8px;
+    }
+
+    .output-label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .worker-status {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Run LLM in Your Browser</h1>
+
+    <div class="row">
+      <label for="model">Model:</label>
+      <select id="model">
+        <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5-0.5B-Instruct (q4f32_1)</option>
+        <option value="Phi-3-mini-4k-instruct-q4f16_1-MLC">Phi-3-mini-4k-instruct (q4f16_1)</option>
+      </select>
+    </div>
+
+    <div class="row" style="flex-direction: column; align-items: stretch;">
+      <textarea id="input" placeholder="Type your prompt here..." rows="6"></textarea>
+    </div>
+
+    <div class="row">
+      <button id="run">Run LLM</button>
+      <span class="status" id="status"></span>
+    </div>
+
+    <div class="row" style="flex-direction: column; align-items: stretch;">
+      <strong class="output-label">Output:</strong>
+      <pre id="output"></pre>
+    </div>
+
+    <div class="worker-status" id="workerStatus">Initializing...</div>
+  </div>
+
+  <script type="module">
+    import * as webllm from 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/dist/index.min.js';
+
+    const modelSel = document.getElementById('model');
+    const inputEl = document.getElementById('input');
+    const runBtn = document.getElementById('run');
+    const statusEl = document.getElementById('status');
+    const outputEl = document.getElementById('output');
+    const workerStatusEl = document.getElementById('workerStatus');
+
+    let engine = null;
+    let currentModel = null;
+    let loading = false;
+    let usingWorker = false;
+
+    function setStatus(text, type = '') {
+      statusEl.textContent = text;
+      statusEl.className = 'status' + (type ? ' ' + type : '');
+    }
+
+    function setRunning(running) {
+      runBtn.disabled = running;
+      runBtn.textContent = running ? 'Running...' : 'Run LLM';
+    }
+
+    async function createEngineWithWorker(modelId) {
+      const eng = await webllm.CreateWebWorkerMLCEngine(
+        new Worker('/assets/webllm/worker-proxy.js', { type: 'module' }),
+        modelId,
+        {
+          initProgressCallback: (progress) => {
+            const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
+            setStatus((progress?.text || 'Loading') + (pct ? ` (${pct}%)` : ''));
+          },
+        }
+      );
+      usingWorker = true;
+      return eng;
+    }
+
+    async function createEngineMainThread(modelId) {
+      const eng = await webllm.CreateMLCEngine(modelId, {
+        initProgressCallback: (progress) => {
+          const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
+          setStatus((progress?.text || 'Loading') + (pct ? ` (${pct}%)` : ''));
+        },
+      });
+      usingWorker = false;
+      return eng;
+    }
+
+    async function ensureEngine(modelId) {
+      if (engine && currentModel === modelId) return engine;
+
+      setStatus('Preparing engine…');
+
+      // Try worker first; if it fails, fall back to main thread.
+      try {
+        engine = await createEngineWithWorker(modelId);
+      } catch (e) {
+        console.warn('Worker init failed, falling back to main thread.', e);
+        setStatus('Worker init failed; falling back to main thread.');
+        engine = await createEngineMainThread(modelId);
+      }
+
+      currentModel = modelId;
+      setStatus('Model ready' + (usingWorker ? ' (worker).' : ' (main thread).'));
+      return engine;
+    }
+
+    runBtn.addEventListener('click', async () => {
+      const prompt = (inputEl.value || '').trim();
+      if (!prompt) {
+        inputEl.focus();
+        return;
+      }
+      if (loading) return;
+
+      loading = true;
+      setRunning(true);
+      outputEl.textContent = '';
+      try {
+        const modelId = modelSel.value;
+        const eng = await ensureEngine(modelId);
+
+        setStatus('Generating…');
+        const reply = await eng.chat.completions.create({
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.7,
+          max_tokens: 512,
+        });
+
+        const text = reply?.choices?.[0]?.message?.content || '';
+        outputEl.textContent = text;
+        setStatus('Done.', 'success');
+      } catch (err) {
+        console.error(err);
+        outputEl.textContent = '';
+        setStatus('Error: ' + (err && err.message ? err.message : String(err)), 'error');
+      } finally {
+        loading = false;
+        setRunning(false);
+      }
+    });
+
+    // Check WebGPU support on load
+    if (!('gpu' in navigator)) {
+      setStatus('WebGPU not detected; loading may be slower.');
+      workerStatusEl.textContent = 'WebGPU not available - performance may be limited';
+    } else {
+      workerStatusEl.textContent = 'WebGPU detected - ready for optimal performance';
+    }
+
+    // Update worker status based on whether we're using worker or main thread
+    const updateWorkerStatus = () => {
+      if (currentModel) {
+        workerStatusEl.textContent = `Running on ${usingWorker ? 'Web Worker' : 'Main Thread'} with ${currentModel}`;
+      }
+    };
+
+    // Set up observer to update worker status
+    const observer = new MutationObserver(updateWorkerStatus);
+    observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
+  </script>
+</body>
+</html>
