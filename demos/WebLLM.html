@@ -1,211 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebLLM Browser Demo</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebLLM</title>
+  <!-- WebLLM (MLC) CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/dist/index.min.js"></script>
   <style>
-    :root {
-      --primary-color: #0078d4;
-      --secondary-color: #106ebe;
-      --background-color: #f5f5f5;
-      --card-color: #ffffff;
-      --text-color: #323130;
-      --border-color: #edebe9;
-      --hover-color: #f3f2f1;
-      --selected-color: #deecf9;
-      --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      --error-color: #d13438;
-      --success-color: #107c10;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background-color: var(--background-color);
-      color: var(--text-color);
-      line-height: 1.5;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background-color: var(--card-color);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      padding: 24px;
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 24px;
-      color: var(--primary-color);
-      text-align: center;
-    }
-
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    label {
-      font-weight: 600;
-      min-width: 60px;
-    }
-
-    select, textarea, button {
-      font-family: var(--font-family);
-      font-size: 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-    }
-
-    select {
-      padding: 8px 12px;
-      flex: 1;
-      background-color: white;
-    }
-
-    textarea {
-      width: 100%;
-      padding: 12px;
-      resize: vertical;
-      min-height: 120px;
-    }
-
-    button {
-      background-color: var(--primary-color);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.2s;
-    }
-
-    button:hover:not(:disabled) {
-      background-color: var(--secondary-color);
-    }
-
-    button:disabled {
-      background-color: #d2d0ce;
-      cursor: not-allowed;
-    }
-
-    .status {
-      font-size: 14px;
-      margin-left: 12px;
-      font-style: italic;
-      color: var(--primary-color);
-    }
-
-    .status.error {
-      color: var(--error-color);
-    }
-
-    .status.success {
-      color: var(--success-color);
-    }
-
-    #output {
-      background-color: var(--background-color);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 12px;
-      min-height: 150px;
-      white-space: pre-wrap;
-      font-family: var(--font-family);
-      margin-top: 8px;
-    }
-
-    .output-label {
-      font-weight: 600;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .worker-status {
-      font-size: 12px;
-      color: #666;
-      margin-top: 8px;
-      text-align: center;
-    }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem; }
+    textarea { width: 100%; max-width: 900px; }
+    button { padding: 0.6rem 1rem; margin-top: 0.5rem; }
+    .status { color: #555; margin-left: 0.5rem; min-height: 1.2em; }
+    pre { background: #f6f8fa; padding: 1rem; border-radius: 8px; white-space: pre-wrap; word-wrap: break-word; max-width: 900px; }
+    .row { margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+    .small { font-size: 0.9rem; color: #666; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Run LLM in Your Browser</h1>
+  <h1>Run LLM in Your Browser</h1>
 
-    <div class="row">
-      <label for="model">Model:</label>
-      <select id="model">
-        <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5-0.5B-Instruct (q4f32_1)</option>
-        <option value="Phi-3-mini-4k-instruct-q4f16_1-MLC">Phi-3-mini-4k-instruct (q4f16_1)</option>
-      </select>
-    </div>
-
-    <div class="row" style="flex-direction: column; align-items: stretch;">
-      <textarea id="input" placeholder="Type your prompt here..." rows="6"></textarea>
-    </div>
-
-    <div class="row">
-      <button id="run">Run LLM</button>
-      <span class="status" id="status"></span>
-    </div>
-
-    <div class="row" style="flex-direction: column; align-items: stretch;">
-      <strong class="output-label">Output:</strong>
-      <pre id="output"></pre>
-    </div>
-
-    <div class="worker-status" id="workerStatus">Initializing...</div>
+  <div class="row small">
+    Tip: First load downloads model weights and can take a minute (cached afterwards).
   </div>
 
-  <script type="module">
-    import * as webllm from 'https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm/dist/index.min.js';
+  <div class="row">
+    <label for="model">Model:</label>
+    <select id="model">
+      <option value="Qwen2.5-0.5B-Instruct-q4f32_1-MLC" selected>Qwen2.5-0.5B-Instruct (q4f32_1)</option>
+      <option value="Phi-3-mini-4k-instruct-q4f16_1-MLC">Phi-3-mini-4k-instruct (q4f16_1)</option>
+    </select>
+  </div>
 
-    const modelSel = document.getElementById('model');
+  <div class="row" style="flex-direction: column; align-items: stretch;">
+    <textarea id="input" placeholder="Type your prompt here..." rows="6"></textarea>
+  </div>
+
+  <div class="row">
+    <button id="run">Run LLM</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <div class="row" style="flex-direction: column; align-items: stretch;">
+    <strong>Output:</strong>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
     const inputEl = document.getElementById('input');
     const runBtn = document.getElementById('run');
-    const statusEl = document.getElementById('status');
     const outputEl = document.getElementById('output');
-    const workerStatusEl = document.getElementById('workerStatus');
+    const statusEl = document.getElementById('status');
+    const modelSel = document.getElementById('model');
 
     let engine = null;
     let currentModel = null;
     let loading = false;
     let usingWorker = false;
 
-    function setStatus(text, type = '') {
-      statusEl.textContent = text;
-      statusEl.className = 'status' + (type ? ' ' + type : '');
-    }
-
+    function setStatus(text) { statusEl.textContent = text || ''; }
     function setRunning(running) {
       runBtn.disabled = running;
-      runBtn.textContent = running ? 'Running...' : 'Run LLM';
+      runBtn.textContent = running ? 'Running…' : 'Run LLM';
+    }
+    function log(...args) { try { console.log('[WebLLM]', ...args); } catch {} }
+
+    function extractText(reply) {
+      // Be robust to different library versions/fields
+      if (!reply) return '';
+      // Newer API shape
+      let text = reply?.choices?.[0]?.message?.content;
+      if (text) return text;
+      // Older or alternative shapes
+      text = reply?.output_text || reply?.text || reply?.choices?.[0]?.text;
+      if (text) return text;
+      // Best-effort stringify
+      try { return JSON.stringify(reply); } catch { return String(reply); }
     }
 
     async function createEngineWithWorker(modelId) {
-      const eng = await webllm.CreateWebWorkerMLCEngine(
-        new Worker('/assets/webllm/worker-proxy.js', { type: 'module' }),
-        modelId,
-        {
-          initProgressCallback: (progress) => {
-            const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
-            setStatus((progress?.text || 'Loading') + (pct ? ` (${pct}%)` : ''));
-          },
-        }
-      );
+      const workerURL = '/assets/webllm/worker-proxy.js'; // same-origin path
+      const worker = new Worker(workerURL, { type: 'module' });
+      worker.onerror = (e) => {
+        console.error('Worker error:', e);
+        setStatus('Worker error. See console for details.');
+      };
+      const eng = await webllm.CreateWebWorkerMLCEngine(worker, modelId, {
+        initProgressCallback: (progress) => {
+          const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
+          const text = progress?.text || 'Loading';
+          setStatus(pct ? `${text} (${pct}%)` : text);
+          log('Init progress:', progress);
+        },
+      });
       usingWorker = true;
       return eng;
     }
@@ -214,7 +100,9 @@
       const eng = await webllm.CreateMLCEngine(modelId, {
         initProgressCallback: (progress) => {
           const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
-          setStatus((progress?.text || 'Loading') + (pct ? ` (${pct}%)` : ''));
+          const text = progress?.text || 'Loading';
+          setStatus(pct ? `${text} (${pct}%)` : text);
+          log('Init progress (main):', progress);
         },
       });
       usingWorker = false;
@@ -256,43 +144,30 @@
         const eng = await ensureEngine(modelId);
 
         setStatus('Generating…');
+
+        // Prefer non-stream for simplicity; handle multiple reply shapes
         const reply = await eng.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.7,
           max_tokens: 512,
         });
 
-        const text = reply?.choices?.[0]?.message?.content || '';
-        outputEl.textContent = text;
-        setStatus('Done.', 'success');
+        const text = extractText(reply);
+        outputEl.textContent = text || '(No text returned)';
+        setStatus('Done.');
       } catch (err) {
         console.error(err);
         outputEl.textContent = '';
-        setStatus('Error: ' + (err && err.message ? err.message : String(err)), 'error');
+        setStatus('Error: ' + (err && err.message ? err.message : String(err)));
       } finally {
         loading = false;
         setRunning(false);
       }
     });
 
-    // Check WebGPU support on load
     if (!('gpu' in navigator)) {
-      setStatus('WebGPU not detected; loading may be slower.');
-      workerStatusEl.textContent = 'WebGPU not available - performance may be limited';
-    } else {
-      workerStatusEl.textContent = 'WebGPU detected - ready for optimal performance';
+      setStatus('WebGPU not detected; loading may be slower or unsupported.');
     }
-
-    // Update worker status based on whether we're using worker or main thread
-    const updateWorkerStatus = () => {
-      if (currentModel) {
-        workerStatusEl.textContent = `Running on ${usingWorker ? 'Web Worker' : 'Main Thread'} with ${currentModel}`;
-      }
-    };
-
-    // Set up observer to update worker status
-    const observer = new MutationObserver(updateWorkerStatus);
-    observer.observe(statusEl, { childList: true, characterData: true, subtree: true });
   </script>
 </body>
 </html>
