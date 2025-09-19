@@ -64,32 +64,32 @@
     }
     function log(...args) { try { console.log('[WebLLM]', ...args); } catch {} }
 
+    // Only try worker when the page is cross-origin isolated (not true on GitHub Pages)
+    function canTryWorker() {
+      return typeof Worker !== 'undefined'
+        && window.isSecureContext === true
+        && window.crossOriginIsolated === true;
+    }
+
     function extractText(reply) {
-      // Be robust to different library versions/fields
       if (!reply) return '';
-      // Newer API shape
       let text = reply?.choices?.[0]?.message?.content;
       if (text) return text;
-      // Older or alternative shapes
       text = reply?.output_text || reply?.text || reply?.choices?.[0]?.text;
       if (text) return text;
-      // Best-effort stringify
       try { return JSON.stringify(reply); } catch { return String(reply); }
     }
 
     async function createEngineWithWorker(modelId) {
-      const workerURL = '/assets/webllm/worker-proxy.js'; // same-origin path
+      const workerURL = '/assets/webllm/worker-proxy.js';
       const worker = new Worker(workerURL, { type: 'module' });
-      worker.onerror = (e) => {
-        console.error('Worker error:', e);
-        setStatus('Worker error. See console for details.');
-      };
+      worker.onerror = (e) => console.error('Worker error:', e);
       const eng = await webllm.CreateWebWorkerMLCEngine(worker, modelId, {
         initProgressCallback: (progress) => {
           const pct = progress?.progress != null ? Math.round(progress.progress * 100) : 0;
           const text = progress?.text || 'Loading';
           setStatus(pct ? `${text} (${pct}%)` : text);
-          log('Init progress:', progress);
+          log('Init progress (worker):', progress);
         },
       });
       usingWorker = true;
@@ -114,13 +114,27 @@
 
       setStatus('Preparing engine…');
 
-      // Try worker first; if it fails, fall back to main thread.
-      try {
-        engine = await createEngineWithWorker(modelId);
-      } catch (e) {
-        console.warn('Worker init failed, falling back to main thread.', e);
-        setStatus('Worker init failed; falling back to main thread.');
+      // Prefer main thread on non-isolated pages (like GitHub Pages)
+      const tryWorker = canTryWorker();
+
+      if (tryWorker) {
+        try {
+          // Hard timeout to avoid hanging if worker can’t init
+          const timeoutMs = 7000;
+          engine = await Promise.race([
+            createEngineWithWorker(modelId),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('Worker init timeout')), timeoutMs)),
+          ]);
+        } catch (e) {
+          console.warn('Worker init failed, falling back to main thread.', e);
+          setStatus('Worker failed; using main thread.');
+          engine = await createEngineMainThread(modelId);
+        }
+      } else {
         engine = await createEngineMainThread(modelId);
+        if (!window.crossOriginIsolated) {
+          log('Page not cross-origin isolated; running on main thread.');
+        }
       }
 
       currentModel = modelId;
@@ -145,7 +159,6 @@
 
         setStatus('Generating…');
 
-        // Prefer non-stream for simplicity; handle multiple reply shapes
         const reply = await eng.chat.completions.create({
           messages: [{ role: 'user', content: prompt }],
           temperature: 0.7,
