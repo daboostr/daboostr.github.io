@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>BNY – DRIP Liquidation Orchestrated Demo</title>
+<title>DRIP Liquidation Orchestrated Demo</title>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="description" content="Configurable IVR / Contact Center DRIP liquidation demo with authentication workflows, agent orchestration, and custom scripting." />
 <style>
@@ -289,7 +289,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent);cursor:pointer
         <path d="M20.5 8L12 13.5"/>
         <path d="M3.5 8L12 13.5"/>
       </svg>
-      <h1 id="appTitleHeading">BNY DRIP Liquidation – Orchestrated Demo</h1>
+      <h1 id="appTitleHeading">DRIP Liquidation – Orchestrated Demo</h1>
     </div>
     <div class="controls">
       <button class="btn" id="configBtn" type="button">Configuration</button>
@@ -326,7 +326,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent);cursor:pointer
                 </svg>
               </div>
               <div class="meta">
-                <span class="name">BNY IVR</span>
+                <span class="name">Bank IVR</span>
                 <span class="state" id="phoneCallState">Idle</span>
               </div>
             </div>
@@ -429,7 +429,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent);cursor:pointer
   </main>
 
   <footer class="app-footer">
-    <div>&copy; 2025 BNY (Demo Simulation)</div>
+    <div>&copy; 2025 Bank (Demo Simulation)</div>
     <div class="result" id="resultSummary"></div>
   </footer>
 </div>
@@ -521,7 +521,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--accent);cursor:pointer
       <div class="tab-panel" data-panel="script" hidden>
         <div class="field">
           <label>Custom Script</label>
-          <textarea class="textarea" id="scriptInput" placeholder="AI: Welcome to BNY...
+          <textarea class="textarea" id="scriptInput" placeholder="AI: Welcome to Contoso Bank...
 Client: Hello
 AI: How can I help?
 # Use #agent=agentId and #after=agentId directives at line end."></textarea>
@@ -583,7 +583,7 @@ const STORAGE_KEYS = {
 
 /* ===== Defaults ===== */
 const DEFAULT_AUTH = { type:'pindrop', otpCode:'834219', autoAdvance:true, skipSummaryIfCustom:false };
-const DEFAULT_UI = { title:'BNY DRIP Liquidation – Orchestrated Demo' };
+const DEFAULT_UI = { title:'Bank DRIP Liquidation – Orchestrated Demo' };
 const DEFAULT_AGENTS = [
   { id:'callSetup', name:'Call Setup Agent', desc:'Establishes IVR channel' },
   { id:'voicePrintCapture', name:'Voice Print Capture', desc:'Captures initial voice sample' },
@@ -600,7 +600,7 @@ const DEFAULT_AGENTS = [
   { id:'routing', name:'Routing Orchestrator', desc:'Transfers context to specialist' }
 ];
 
-const BASE_SCRIPT_PINDROP = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+const BASE_SCRIPT_PINDROP = `AI: Welcome to Bank Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
 AI: We’ll authenticate your voice using Pindrop Passport. Please state your full name and institution after the tone.
 Client: Emily Rivera, Global Capital Advisors. #agent=voicePrintCapture
 AI: Thank you. Please clearly read the phrase: "Secure access for Global Capital".
@@ -621,7 +621,7 @@ AI: Standard settlement (2–3 days) or expedited same-day?
 Client: Expedited. #agent=settlement
 AI: Summary: Close 1,078 Palantir DRIP shares; wire proceeds to primary account ending 4821 expedited. #agent=case #after=routing`;
 
-const BASE_SCRIPT_PUSH = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+const BASE_SCRIPT_PUSH = `AI: Welcome to Bank Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
 AI: A push notification will be sent to your registered device. Please approve to continue.
 Client: Approved.
 AI: Authentication confirmed. Proceeding to profile verification. #agent=identity
@@ -640,7 +640,7 @@ AI: Standard settlement (2–3 days) or expedited same-day?
 Client: Expedited. #agent=settlement
 AI: Summary: Close 1,078 Palantir DRIP shares; wire proceeds to primary account ending 4821 expedited. #agent=case #after=routing`;
 
-const BASE_SCRIPT_OTP = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+const BASE_SCRIPT_OTP = `AI: Welcome to Bank Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
 AI: I’ve sent a one-time passcode to your registered number. Please enter the six digits when ready.
 Client: Entered the code.
 AI: Authentication confirmed. Proceeding to profile verification. #agent=identity
