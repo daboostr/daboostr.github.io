@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>BNY – DRIP Liquidation Orchestrated Demo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="description" content="Configurable IVR / Contact Center DRIP liquidation demo with authentication workflows, agent orchestration, and custom scripting." />
+<style>
+/* ---------------- Root Theme & Resets ---------------- */
+:root {
+  --bg:#0b1118;
+  --bg-alt:#101c2a;
+  --bg-panel:#132335;
+  --bg-panel-soft:#182d42;
+  --bg-accent:#1f3b57;
+  --border:#25425a;
+  --border-soft:#203848;
+  --text:#e6eef8;
+  --text-soft:#b3c5d6;
+  --text-faint:#8096aa;
+  --accent:#5fa8ff;
+  --accent-alt:#82c0ff;
+  --accent-glow:#93c9ff;
+  --danger:#ef4444;
+  --warn:#f59e0b;
+  --ok:#22c55e;
+  --pending:#475569;
+  --radius:16px;
+  --radius-sm:8px;
+  --shadow:0 8px 28px -8px rgba(0,0,0,.55);
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --focus-ring:0 0 0 2px #1f3b57,0 0 0 4px #5fa8ff;
+  --gradient-panel:linear-gradient(175deg,#172b40 0%,#0f1b28 85%);
+  --gradient-btn:linear-gradient(180deg,#25496c,#1c3249);
+  --gradient-btn-hover:linear-gradient(180deg,#2c567d,#23425d);
+  --gradient-danger:linear-gradient(180deg,#6b1d29,#4a121c);
+  --gradient-success:linear-gradient(180deg,#1f5a38,#16462b);
+  --transition: .25s cubic-bezier(.4,.05,.22,1);
+}
+
+* { box-sizing:border-box; }
+html,body {
+  margin:0;
+  height:100%;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  background:radial-gradient(950px 780px at 72% -5%,#1f3854,#0b1118 55%);
+  color:var(--text);
+}
+
+body { padding:18px; }
+
+::-webkit-scrollbar { width:10px; height:10px; }
+::-webkit-scrollbar-track { background:#0f1c29; }
+::-webkit-scrollbar-thumb { background:#2a475f;border-radius:16px;border:2px solid #0f1c29; }
+::-webkit-scrollbar-thumb:hover { background:#35617f; }
+
+h1,h2,h3,h4 { margin:0;font-weight:600;letter-spacing:.4px; }
+.fade-in { animation:fade-in .35s ease; }
+@keyframes fade-in { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+
+.btn {
+  --btn-bg:var(--gradient-btn);
+  --btn-border:var(--border);
+  background:var(--btn-bg);
+  border:1px solid var(--btn-border);
+  color:var(--text);
+  font-size:13px;
+  padding:10px 16px;
+  border-radius:12px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-weight:500;
+  line-height:1;
+  transition:var(--transition);
+}
+.btn:hover { background:var(--gradient-btn-hover); }
+.btn.primary { background:linear-gradient(180deg,#2f6aa1,#245177);border-color:#2e648f; }
+.btn.primary:hover { background:linear-gradient(180deg,#3677b4,#2b608d); }
+.btn.ghost { background:transparent;border:1px solid var(--border);color:var(--text-soft); }
+.btn.ghost:hover { background:#1a2c3d;color:var(--text); }
+.btn:disabled { opacity:.55;cursor:default; }
+
+.toggle { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft); }
+input[type=checkbox],input[type=radio]{accent-color:var(--accent);cursor:pointer;}
+
+.app { max-width:1680px;margin:0 auto;display:flex;flex-direction:column;gap:18px; }
+
+.app-header {
+  display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  background:var(--gradient-panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px 20px;box-shadow:var(--shadow);
+}
+
+.brand { display:flex;align-items:center;gap:14px; }
+.brand svg { color:var(--accent); }
+.app-header h1 { font-size:19px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;gap:10px; }
+
+.ms-logo {
+  display:inline-block;width:30px;height:30px;border-radius:6px;position:relative;
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),0 2px 6px -2px rgba(0,0,0,.5);
+  background:#0e1a25;padding:4px;transition:var(--transition);
+}
+.ms-logo:hover,.ms-logo:focus-visible { background:#142534;box-shadow:0 0 0 2px #264b73,0 0 0 4px #5fa8ff; }
+.ms-logo svg { width:100%;height:100%;display:block; }
+
+.layout {
+  display:grid;grid-template-columns:320px 1fr 1fr;gap:18px;align-items:stretch;
+}
+@media (max-width:1420px){ .layout{grid-template-columns:300px 1fr 1fr;} }
+@media (max-width:1180px){
+  .layout{grid-template-columns:1fr 1fr;grid-template-areas:"phone phone""call agents";}
+  .phone-card{grid-area:phone}.call-panel{grid-area:call}.agents-panel{grid-area:agents}
+}
+@media (max-width:860px){
+  .layout{grid-template-columns:1fr;grid-template-areas:"phone""call""agents";}
+}
+
+.card {
+  background:var(--gradient-panel);border:1px solid var(--border);border-radius:var(--radius);
+  display:flex;flex-direction:column;position:relative;min-height:520px;box-shadow:var(--shadow);overflow:hidden;
+}
+
+.phone-card { min-height:640px;padding:14px 14px 18px;background:linear-gradient(170deg,#183049,#101d2b); }
+
+.phone-shell { width:100%;display:flex;justify-content:center; }
+.phone {
+  width:270px;height:560px;background:linear-gradient(160deg,#1e3852,#0f1b28);
+  border:1px solid #2c4a63;border-radius:30px;padding:12px;position:relative;
+  box-shadow:0 14px 38px -10px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.05);display:flex;
+}
+.screen { flex:1;background:linear-gradient(180deg,#0f1c28,#0b141d);border:1px solid rgba(255,255,255,.06);
+  border-radius:22px;display:flex;flex-direction:column;overflow:hidden;position:relative; }
+
+.status-bar {height:26px;display:flex;align-items:center;justify-content:space-between;font-size:11px;
+  padding:0 12px;color:#d5e6f7;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent);letter-spacing:.3px;}
+.status-bar .icons {display:flex;gap:6px;}
+.status-bar .icons span {width:15px;height:10px;border:1px solid #83bff7;border-radius:3px;background:radial-gradient(circle at 40% 35%,#27507a,#132d47);opacity:.85;}
+
+.call-header {display:flex;align-items:center;gap:10px;padding:8px 12px 10px;border-bottom:1px solid #1e364a;background:#15273a;}
+.call-header .avatar {width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(120% 100% at 32% 22%,#264c72,#143049);border:1px solid #31597e;}
+.call-header .avatar svg {width:22px;height:22px;stroke:var(--accent);stroke-width:1.4;fill:none;}
+.call-header .meta {display:flex;flex-direction:column;font-size:11px;line-height:1.2;}
+.call-header .meta .name {font-size:13px;font-weight:600;letter-spacing:.4px;}
+.call-header .meta .state {color:var(--text-faint);}
+
+.layer {position:absolute;inset:0;display:none;}
+.layer.active{display:flex;}
+
+.dial-layer {flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:20px;text-align:center;font-size:13px;color:#c6e2ff;}
+.dial-circle {width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 30% 25%,#255079,#173449);border:1px solid #376289;position:relative;overflow:hidden;}
+.dial-circle:before,.dial-circle:after{content:"";position:absolute;inset:8px;border:2px solid rgba(95,168,255,.45);border-radius:50%;animation:ping 2.4s linear infinite;}
+.dial-circle:after{animation-delay:1.2s;}
+@keyframes ping {0%{transform:scale(.85);opacity:.75}70%{transform:scale(1.15);opacity:0}100%{transform:scale(.85);opacity:0}}
+.dial-status{font-weight:600;letter-spacing:.5px;}
+
+.call-active-layer {flex-direction:column;padding:14px 12px 12px;gap:12px;overflow:hidden;}
+.timer {font-size:12px;color:var(--text-faint);letter-spacing:.4px;font-variant-numeric:tabular-nums;}
+
+.badge-inline {font-size:10px;padding:4px 8px 3px;background:#1e3a53;border:1px solid #2f5679;border-radius:999px;letter-spacing:.5px;font-weight:500;color:#b4d9f9;white-space:nowrap;}
+.badge-inline.ok{background:#14422c;border-color:#1f6845;color:#bef5d7;}
+.badge-inline.danger{background:#57222a;border-color:#81353f;color:#ffcbd2;}
+
+.auth-block {background:#13283b;border:1px solid #24455c;border-radius:14px;padding:12px 12px 14px;display:flex;flex-direction:column;gap:10px;font-size:12.5px;animation:fade-in .35s ease;}
+.block-title {font-size:12.5px;font-weight:600;letter-spacing:.4px;display:flex;align-items:center;gap:8px;}
+
+.waveform{height:34px;display:flex;gap:4px;align-items:flex-end;padding:5px 6px;border:1px solid #2e4f68;border-radius:10px;background:#0f2130;overflow:hidden;}
+.waveform span{width:5px;background:linear-gradient(180deg,#5fa8ff,#2c5f91);border-radius:3px;animation:bars 1.05s ease-in-out infinite alternate;transform-origin:bottom;}
+.waveform span:nth-child(2){animation-delay:.12s}
+.waveform span:nth-child(3){animation-delay:.24s}
+.waveform span:nth-child(4){animation-delay:.36s}
+.waveform span:nth-child(5){animation-delay:.48s}
+.waveform span:nth-child(6){animation-delay:.60s}
+@keyframes bars{from{height:22%;filter:brightness(.85)}to{height:100%;filter:brightness(1.15)}}
+
+.progress-pill{height:8px;background:#0f2231;border:1px solid #234458;border-radius:999px;overflow:hidden;position:relative;flex:1;}
+.progress-pill span{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,#3b82f6,#22c55e);transition:width .4s ease;}
+.auth-complete{display:none;font-size:11px;font-weight:600;color:var(--ok);letter-spacing:.3px;padding-left:4px;}
+.auth-complete.show{display:inline-block;}
+
+.otp-display{display:flex;gap:8px;justify-content:center;padding-top:2px;}
+.otp-display span{width:32px;height:40px;border:1px solid #2b4b63;border-radius:10px;background:#142b3d;font-weight:600;font-size:14px;display:grid;place-items:center;letter-spacing:1px;}
+.keypad{margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.keypad button{aspect-ratio:1/0.78;border-radius:12px;border:1px solid #2d526d;background:#183348;color:#cfe7ff;font-weight:600;font-size:14px;cursor:pointer;transition:var(--transition);}
+.keypad button:hover{background:#21425b;}
+.keypad button:active{background:#2c5370;}
+
+.toast-phone{position:absolute;left:12px;right:12px;bottom:16px;background:#112a3b;border:1px solid #1f4157;border-radius:14px;
+  padding:11px 14px;font-size:12.5px;display:flex;flex-direction:column;gap:4px;color:#d7ecff;opacity:0;transform:translateY(14px);pointer-events:none;transition:.35s;box-shadow:0 6px 22px -8px rgba(0,0,0,.55);}
+.toast-phone.success{background:#113626;border-color:#1e5639;color:#c6f6dc;}
+.toast-phone.show{opacity:1;transform:translateY(0);}
+.toast-phone .t-title{font-weight:600;letter-spacing:.4px;font-size:12.5px;}
+
+.call-actions{margin-top:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-top:6px;}
+.circle-btn{height:62px;border-radius:18px;background:#132a3d;border:1px solid #27465c;color:#d2e6f7;font-size:11.5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-weight:500;transition:var(--transition);}
+.circle-btn:hover{background:#19364d;}
+.circle-btn.end{background:#4c1621;border-color:#73323d;color:#ffdfe4;}
+.circle-btn.end:hover{background:#5b1b28;}
+.circle-btn span.ico{width:22px;height:22px;border-radius:8px;background:linear-gradient(180deg,#5fa8ff,#2a5e8d);box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;}
+.circle-btn.end span.ico{background:linear-gradient(180deg,#ef4444,#a91326);}
+
+.transcript{flex:1;display:flex;flex-direction:column;gap:14px;padding:18px 18px 24px;overflow:auto;scrollbar-width:thin;}
+.party{display:flex;align-items:center;gap:12px;}
+.party .avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(120% 100% at 32% 20%,#294e71,#173347);border:1px solid #3a6a92;position:relative;}
+.party .avatar svg{width:34px;height:34px;stroke:var(--accent);stroke-width:1.6;fill:none;}
+.party.speaking .avatar:after{content:"";position:absolute;inset:-6px;border:2px solid var(--accent);border-radius:50%;animation:pulse 1.4s ease-out infinite;opacity:.7;}
+@keyframes pulse{0%{transform:scale(.9);opacity:.8}70%{transform:scale(1.16);opacity:0}100%{transform:scale(.9);opacity:0}}
+.msg{max-width:82%;background:#13293b;border:1px solid #25455a;padding:11px 14px 12px;border-radius:16px;font-size:13.2px;line-height:1.48;position:relative;box-shadow:0 3px 8px -4px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.03);}
+.msg.ai{margin-left:auto;background:#1a3650;border-color:#2d5472;}
+.msg .meta{font-size:10px;color:var(--text-faint);margin-bottom:4px;letter-spacing:.55px;font-weight:500;text-transform:uppercase;display:flex;gap:6px;}
+.notice{position:absolute;top:8px;right:10px;font-size:10px;letter-spacing:.6px;color:var(--text-faint);font-weight:500;}
+.fast-mode-active .notice{color:var(--accent);}
+
+.agents-list{flex:1;padding:14px 14px 24px;display:flex;flex-direction:column;gap:14px;overflow:auto;scrollbar-width:thin;}
+.agent{background:#122536;border:1px solid #25475e;border-radius:16px;padding:11px 13px 10px;display:grid;grid-template-columns:18px 1fr auto;gap:14px;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);transition:var(--transition);}
+.agent.running{background:#17344d;border-color:#2d5d7b;}
+.agent.success{background:#173d2b;border-color:#2d6f4b;}
+.agent h3{margin:0;font-size:13.2px;letter-spacing:.35px;font-weight:600;display:flex;align-items:center;gap:6px;color:var(--text);}
+.agent .desc{font-size:11.3px;color:var(--text-soft);margin-top:2px;line-height:1.38;}
+.state-dot{width:11px;height:11px;border-radius:50%;background:var(--pending);margin-top:3px;box-shadow:0 0 0 3px rgba(255,255,255,.04) inset;}
+.state-dot.running{background:var(--accent);animation:blink 1s ease-in-out infinite alternate;}
+.state-dot.success{background:var(--ok);}
+@keyframes blink{from{filter:brightness(.85)}to{filter:brightness(1.25)}}
+.badge{font-size:10px;padding:4px 9px 3px;border-radius:999px;background:#1d3346;border:1px solid #2d4a61;color:var(--text-soft);letter-spacing:.5px;font-weight:500;text-transform:uppercase;white-space:nowrap;}
+.badge.success{background:#18412d;border-color:#2d6d4b;color:#bdeed2;}
+.logs{grid-column:1/-1;margin-top:8px;background:#0f2030;border:1px solid #213d50;border-radius:12px;padding:8px 10px 9px;max-height:110px;overflow:auto;font:11px/1.4 var(--mono);color:#c7d9ea;scrollbar-width:thin;}
+.logline{white-space:nowrap;}
+.logtime{color:#6db7ff;margin-right:6px;}
+.kv{color:#9ec8ef;}
+
+.timeline-bar{height:8px;background:#0f1f2c;margin:10px 16px 0;border:1px solid #234055;border-radius:999px;overflow:hidden;position:relative;}
+.timeline-progress{position:absolute;inset:0;width:0%;background:linear-gradient(90deg,#3b82f6,#22c55e);transition:width .45s cubic-bezier(.55,.08,.2,.95);}
+
+.config-drawer-overlay{position:fixed;inset:0;background:rgba(3,10,16,.62);backdrop-filter:blur(5px);display:none;align-items:stretch;justify-content:flex-end;z-index:600;}
+.config-drawer-overlay.show{display:flex;}
+.config-drawer{width:500px;max-width:100%;background:linear-gradient(186deg,#1a3249,#0d1824 78%);border-left:1px solid #28465d;box-shadow:-10px 0 30px -12px rgba(0,0,0,.65);display:flex;flex-direction:column;}
+.config-header{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2c4d64;}
+.config-header h2{font-size:17px;}
+.config-tabs{display:flex;gap:8px;padding:12px 18px 2px;flex-wrap:wrap;}
+.config-tabs button{flex:1;background:#163044;border:1px solid #2b4a61;color:var(--text-soft);font-size:12.8px;padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:500;letter-spacing:.3px;transition:var(--transition);}
+.config-tabs button.active{background:#254d70;border-color:#356b97;color:#f1f9ff;}
+.config-body{flex:1;overflow:auto;padding:16px 20px 110px;display:flex;flex-direction:column;gap:28px;}
+.tab-panel[hidden]{display:none!important;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.field label{font-size:12px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--text-soft);}
+.radio-row{display:flex;flex-direction:column;gap:10px;}
+.radio-opt{display:flex;gap:12px;background:#152b3d;border:1px solid #28465c;padding:9px 12px;border-radius:12px;font-size:13px;line-height:1.35;}
+.radio-opt input{margin-top:2px;}
+.hint{font-size:11px;color:var(--text-faint);line-height:1.45;}
+.textarea{width:100%;min-height:200px;background:#102233;border:1px solid #2c4b62;border-radius:12px;padding:12px 14px;color:#d5e7f4;font-family:var(--mono);font-size:12.5px;line-height:1.5;resize:vertical;}
+.script-stats{font-size:11px;display:flex;gap:14px;flex-wrap:wrap;color:var(--text-faint);}
+.parse-error,.warning-msg,.success-msg{font-size:11.5px;line-height:1.45;padding:8px 11px 9px;border-radius:12px;border:1px solid;}
+.parse-error{background:#421d25;border-color:#6f323d;color:#ffd9de;}
+.warning-msg{background:#3e3216;border-color:#664d1d;color:#ffe2b6;}
+.success-msg{background:#153a26;border-color:#265c3d;color:#c5f3d9;}
+.agent-edit-table{width:100%;border-collapse:collapse;font-size:12.5px;background:#13283b;border:1px solid #2b4a61;border-radius:14px;overflow:hidden;}
+.agent-edit-table th{background:#1a394f;padding:8px 10px;text-align:left;font-weight:600;letter-spacing:.4px;font-size:11.5px;color:#d5e6f4;border-bottom:1px solid #2c4f68;}
+.agent-edit-table td{padding:7px 10px;border-bottom:1px solid #223b4d;}
+.agent-edit-table tr:last-child td{border-bottom:none;}
+.agent-edit-table input{width:100%;background:#0f2233;border:1px solid #2c4b62;border-radius:8px;padding:5px 7px;color:#d8eaf7;font-size:12.5px;font-family:inherit;transition:var(--transition);}
+.agent-edit-table input:focus{border-color:#3d7fb1;box-shadow:0 0 0 2px #1f3851;}
+.inline-warn{font-size:11px;color:#ffc861;letter-spacing:.3px;}
+.config-footer{position:sticky;bottom:0;background:#142a3b;border-top:1px solid #2c4f68;padding:14px 18px;display:flex;justify-content:flex-end;gap:12px;}
+.app-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;font-size:12px;background:#132536;border:1px solid #233f53;border-radius:12px;letter-spacing:.2px;}
+.app-footer .result{color:var(--accent-alt);font-weight:500;}
+.fast-mode-active .app-header{box-shadow:0 0 0 2px #2b4e6d,0 0 0 4px #5fa8ff;}
+@keyframes sweep{0%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+</style>
+</head>
+<body>
+<div class="app" id="appRoot">
+  <header class="app-header">
+    <div class="brand">
+      <a class="ms-logo" href="https://www.microsoft.com" target="_blank" rel="noopener noreferrer" aria-label="Microsoft Home">
+        <svg viewBox="0 0 28 28" role="img" aria-hidden="true">
+          <rect x="1" y="1" width="12" height="12" fill="#f25022" rx="1" ry="1"></rect>
+          <rect x="15" y="1" width="12" height="12" fill="#7fba00" rx="1" ry="1"></rect>
+          <rect x="1" y="15" width="12" height="12" fill="#00a4ef" rx="1" ry="1"></rect>
+          <rect x="15" y="15" width="12" height="12" fill="#ffb900" rx="1" ry="1"></rect>
+        </svg>
+      </a>
+      <svg width="28" height="28" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.4" fill="none" aria-hidden="true">
+        <path d="M12 3l8.5 5v8l-8.5 5-8.5-5v-8z"/>
+        <path d="M12 3v10.5"/>
+        <path d="M20.5 8L12 13.5"/>
+        <path d="M3.5 8L12 13.5"/>
+      </svg>
+      <h1 id="appTitleHeading">BNY DRIP Liquidation – Orchestrated Demo</h1>
+    </div>
+    <div class="controls">
+      <button class="btn" id="configBtn" type="button">Configuration</button>
+      <button class="btn primary" id="startBtn" type="button">Start Simulation</button>
+      <button class="btn ghost" id="resetBtn" type="button" disabled>Reset</button>
+      <label class="toggle">
+        <input type="checkbox" id="fastMode">
+        <span>Fast Mode</span>
+      </label>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Phone Panel -->
+    <section class="card phone-card" id="phoneCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:600;color:var(--text-soft);letter-spacing:.5px;">Client Mobile Call</div>
+        <div class="badge-inline" id="authTypeBadge">Auth: Pindrop</div>
+      </div>
+      <div class="phone-shell">
+        <div class="phone">
+          <div class="screen">
+            <div class="status-bar">
+              <span id="sbTime">12:00</span>
+              <div class="icons"><span></span><span></span><span></span></div>
+            </div>
+            <div class="call-header">
+              <div class="avatar">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <rect x="4" y="5" width="16" height="10" rx="2" ry="2"></rect>
+                  <rect x="8" y="16" width="8" height="3" rx="1"></rect>
+                  <circle cx="9.5" cy="10" r="1.2"></circle>
+                  <circle cx="14.5" cy="10" r="1.2"></circle>
+                </svg>
+              </div>
+              <div class="meta">
+                <span class="name">BNY IVR</span>
+                <span class="state" id="phoneCallState">Idle</span>
+              </div>
+            </div>
+            <div class="phone-body">
+              <div class="layer dial-layer active" id="dialLayer">
+                <div class="dial-circle">
+                  <svg width="48" height="48" viewBox="0 0 24 24" stroke="#99d4ff" stroke-width="1.2" fill="none" aria-hidden="true">
+                    <rect x="4" y="5" width="16" height="10" rx="2" ry="2"></rect>
+                    <rect x="8" y="16" width="8" height="3" rx="1"></rect>
+                    <circle cx="9.5" cy="10" r="1.2"></circle>
+                    <circle cx="14.5" cy="10" r="1.2"></circle>
+                  </svg>
+                </div>
+                <div class="dial-status" id="dialStatus">Dialing…</div>
+                <div style="font-size:11px;color:var(--text-faint);max-width:210px;">
+                  Simulating network connect & initial call set‑up.
+                </div>
+              </div>
+
+              <div class="layer call-active-layer" id="activeLayer">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div class="timer" id="callTimer">00:00</div>
+                  <div class="badge-inline" id="authStatusBadge">Auth Pending</div>
+                </div>
+
+                <div id="authBlockContainer"></div>
+
+                <div class="toast-phone" id="phoneToast">
+                  <div class="t-title" id="toastTitle">Notification</div>
+                  <div id="toastBody">Body</div>
+                </div>
+
+                <div class="call-actions">
+                  <button class="circle-btn" id="btnMute" type="button"><span class="ico"></span>Mute</button>
+                  <button class="circle-btn" id="btnSpeaker" type="button"><span class="ico" style="background:linear-gradient(180deg,#60d39a,#2b7e57)"></span>Speaker</button>
+                  <button class="circle-btn end" id="btnEnd" type="button"><span class="ico"></span>End</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>  
+    </section>
+
+    <!-- Transcript Panel -->
+    <section class="card call-panel">
+      <div class="call-header-grid" style="display:grid;grid-template-columns:1fr 110px 1fr;gap:16px;padding:14px 18px;border-bottom:1px solid var(--border);background:rgba(17,36,53,.55);backdrop-filter:blur(3px);">
+        <div class="party client" id="clientParty">
+            <div class="avatar">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="7.5" r="4"></circle>
+                <path d="M4 21c0-4.8 3.6-7 8-7s8 2.2 8 7" stroke-width="1.6"></path>
+              </svg>
+            </div>
+            <div class="label">
+              <span class="name" style="font-weight:600;font-size:13px;">Client</span>
+              <span class="status" id="clientStatus" style="font-size:11px;color:var(--text-faint);">Idle</span>
+            </div>
+        </div>
+        <div class="wave-wrap" style="display:grid;place-items:center;">
+          <div class="wave" style="width:100%;height:14px;border-radius:999px;position:relative;overflow:hidden;background:linear-gradient(90deg,#163045,#1c3d57);">
+            <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,#80c4ff90,transparent);animation:sweep 3s linear infinite;"></div>
+            <div style="position:absolute;inset:0;background:linear-gradient(90deg,transparent,#80c4ff50,transparent);animation:sweep 4s linear infinite;"></div>
+          </div>
+        </div>
+        <div class="party ai" id="aiParty">
+          <div class="avatar">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="12" rx="2" ry="2"></rect>
+              <rect x="8" y="18" width="8" height="3.2" rx="1"></rect>
+              <circle cx="9.5" cy="10" r="1.4"></circle>
+              <circle cx="14.5" cy="10" r="1.4"></circle>
+            </svg>
+          </div>
+          <div class="label">
+            <span class="name" style="font-weight:600;font-size:13px;">IVR AI</span>
+            <span class="status" id="aiStatus" style="font-size:11px;color:var(--text-faint);">Idle</span>
+          </div>
+        </div>
+      </div>
+      <div class="transcript" id="transcript" aria-live="polite"></div>
+      <span class="notice" id="modeNotice"></span>
+    </section>
+
+    <!-- Agents Panel -->
+    <section class="card agents-panel">
+      <div class="card-header">
+        <div>
+          <h2 style="font-size:16px;">Downstream Orchestration</h2>
+          <div class="helper-inline">Agent services invoked contextually</div>
+        </div>
+      </div>
+      <div class="timeline-bar"><div class="timeline-progress" id="globalProgress"></div></div>
+      <div class="agents-list" id="agentsList">
+        <div class="agent-skeleton" style="height:64px;background:linear-gradient(90deg,#143042,#1b4258,#143042);background-size:160% 100%;animation:shimmer 1.8s infinite;"></div>
+        <div class="agent-skeleton" style="height:64px;background:linear-gradient(90deg,#143042,#1b4258,#143042);background-size:160% 100%;animation:shimmer 1.8s infinite;"></div>
+        <div class="agent-skeleton" style="height:64px;background:linear-gradient(90deg,#143042,#1b4258,#143042);background-size:160% 100%;animation:shimmer 1.8s infinite;"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div>&copy; 2025 BNY (Demo Simulation)</div>
+    <div class="result" id="resultSummary"></div>
+  </footer>
+</div>
+
+<!-- Configuration Drawer -->
+<div class="config-drawer-overlay" id="configOverlay" aria-hidden="true">
+  <div class="config-drawer" role="dialog" aria-modal="true" aria-labelledby="configTitle">
+    <div class="config-header">
+      <h2 id="configTitle">Configuration</h2>
+      <button class="btn ghost" id="closeConfig" type="button">Close</button>
+    </div>
+    <div class="config-tabs">
+      <button data-tab="general" class="active" type="button">General</button>
+      <button data-tab="auth" type="button">Authentication</button>
+      <button data-tab="script" type="button">Script</button>
+      <button data-tab="agents" type="button">Agents</button>
+    </div>
+    <div class="config-body">
+      <!-- General Tab -->
+      <div class="tab-panel" data-panel="general">
+        <div class="field">
+          <label>Application Title</label>
+          <input id="appTitleInput" type="text" maxlength="120" placeholder="Enter a custom demo title"
+                 style="background:#102233;border:1px solid #2c4b62;border-radius:10px;padding:10px 12px;color:#e2f0fa;font-size:13px;">
+          <div class="hint">Updates the top heading and browser tab title. Persisted locally.</div>
+        </div>
+        <div class="success-msg" id="generalSaveStatus" style="display:none;">Title saved.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn primary" id="saveGeneralBtn" type="button">Save Title</button>
+          <button class="btn ghost" id="resetGeneralBtn" type="button">Reset Default</button>
+        </div>
+      </div>
+
+      <!-- Auth Tab -->
+      <div class="tab-panel" data-panel="auth" hidden>
+        <div class="field">
+          <label>Authentication Type</label>
+          <div class="radio-row" id="authOptions">
+            <label class="radio-opt">
+              <input type="radio" name="authType" value="pindrop" checked/>
+              <div>
+                <strong>Pindrop Voice Biometrics</strong><br/>
+                <span class="hint">Phrase capture, risk scoring & passport match.</span>
+              </div>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="authType" value="push"/>
+              <div>
+                <strong>Mobile App Push</strong><br/>
+                <span class="hint">Out‑of‑band push approval / deny.</span>
+              </div>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="authType" value="otp"/>
+              <div>
+                <strong>One-Time Passcode (OTP)</strong><br/>
+                <span class="hint">6‑digit challenge code entry.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label>OTP Code</label>
+          <input id="otpCodeInput" type="text" maxlength="6" value="834219" style="background:#102233;border:1px solid #2d4f66;border-radius:10px;padding:9px 12px;color:#d6e8f6;font-size:13px;font-variant-numeric:tabular-nums;">
+          <div class="hint">Used only when OTP is selected; auto‑fills during demo.</div>
+        </div>
+        <div class="field">
+          <label>Behavior Options</label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;">
+            <input type="checkbox" id="autoAdvanceAuth" checked />
+            Auto‑advance after authentication
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12.5px;">
+            <input type="checkbox" id="skipSummaryIfCustom" />
+            Skip default summary if custom script supplies one
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn ghost" id="testAuthVisibility" type="button">Preview Auth UI</button>
+        </div>
+        <div class="success-msg" id="authSaveStatus" style="display:none;">Authentication settings saved.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn primary" id="saveAuthBtn" type="button">Save</button>
+          <button class="btn ghost" id="resetAuthDefaults" type="button">Defaults</button>
+        </div>
+      </div>
+
+      <!-- Script Tab -->
+      <div class="tab-panel" data-panel="script" hidden>
+        <div class="field">
+          <label>Custom Script</label>
+          <textarea class="textarea" id="scriptInput" placeholder="AI: Welcome to BNY...
+Client: Hello
+AI: How can I help?
+# Use #agent=agentId and #after=agentId directives at line end."></textarea>
+          <div class="hint">Prefix each line with AI: or Client:. Add inline triggers like <code>#agent=identity #after=routing</code>.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="scriptFile" accept=".txt" style="font-size:11px;color:var(--text-faint);">
+          <button class="btn ghost" id="loadSampleScript" type="button">Load Default</button>
+          <button class="btn ghost" id="clearScript" type="button">Clear</button>
+        </div>
+        <div class="script-stats" id="scriptStats"></div>
+        <div id="scriptErrors" class="parse-error" style="display:none;"></div>
+        <div id="scriptWarnings" class="warning-msg" style="display:none;"></div>
+        <div id="scriptSuccess" class="success-msg" style="display:none;">Script saved.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn primary" id="saveScriptBtn" type="button">Save Script</button>
+          <button class="btn ghost" id="resetScriptDefaults" type="button">Restore Default</button>
+        </div>
+      </div>
+
+      <!-- Agents Tab -->
+      <div class="tab-panel" data-panel="agents" hidden>
+        <div class="field">
+          <label>Agent Display Names</label>
+          <table class="agent-edit-table" id="agentEditTable">
+            <thead>
+              <tr><th>Agent ID</th><th>Display Name</th><th>Original</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="hint">Renaming affects labels only; internal IDs remain for triggers.</div>
+        </div>
+        <div id="agentWarn" class="inline-warn" style="display:none;">Blank or duplicate names detected.</div>
+        <div id="agentsSaveStatus" class="success-msg" style="display:none;">Agent names saved.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn primary" id="saveAgentsBtn" type="button">Save Agents</button>
+          <button class="btn ghost" id="resetAgentDefaults" type="button">Restore Defaults</button>
+        </div>
+      </div>
+    </div>
+    <div class="config-footer">
+      <button class="btn ghost" id="closeConfigFooter" type="button">Close</button>
+      <button class="btn primary" id="applyAndClose" type="button">Apply & Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Polyfill ===== */
+if(typeof structuredClone !== 'function'){ window.structuredClone = obj => JSON.parse(JSON.stringify(obj)); }
+
+/* ===== Storage Keys ===== */
+const STORAGE_KEYS = {
+  auth:'demo.auth.config.v4',
+  script:'demo.script.v4',
+  agents:'demo.agent.names.v4',
+  ui:'demo.ui.config.v1'
+};
+
+/* ===== Defaults ===== */
+const DEFAULT_AUTH = { type:'pindrop', otpCode:'834219', autoAdvance:true, skipSummaryIfCustom:false };
+const DEFAULT_UI = { title:'BNY DRIP Liquidation – Orchestrated Demo' };
+const DEFAULT_AGENTS = [
+  { id:'callSetup', name:'Call Setup Agent', desc:'Establishes IVR channel' },
+  { id:'voicePrintCapture', name:'Voice Print Capture', desc:'Captures initial voice sample' },
+  { id:'voiceRiskScoring', name:'Voice Risk Scoring', desc:'Analyzes voice & risk score' },
+  { id:'pindropPassport', name:'Pindrop Passport', desc:'Passport match & decision' },
+  { id:'identity', name:'Identity Verification', desc:'Institution profile validation' },
+  { id:'intent', name:'Intent Classifier', desc:'Classifies DRIP liquidation intent' },
+  { id:'position', name:'Position Data', desc:'Retrieves DRIP position & metadata' },
+  { id:'financialInfo', name:'Financial Info', desc:'Cost basis & dividend fetch' },
+  { id:'liquidationConfirm', name:'Liquidation Confirmation', desc:'Confirms full liquidation' },
+  { id:'distribution', name:'Distribution Preference', desc:'Captures proceeds distribution' },
+  { id:'settlement', name:'Settlement Options', desc:'Destination & settlement speed' },
+  { id:'case', name:'Case Assembler', desc:'Builds case & summary' },
+  { id:'routing', name:'Routing Orchestrator', desc:'Transfers context to specialist' }
+];
+
+const BASE_SCRIPT_PINDROP = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+AI: We’ll authenticate your voice using Pindrop Passport. Please state your full name and institution after the tone.
+Client: Emily Rivera, Global Capital Advisors. #agent=voicePrintCapture
+AI: Thank you. Please clearly read the phrase: "Secure access for Global Capital".
+Client: Secure access for Global Capital. #agent=voiceRiskScoring #after=pindropPassport
+AI: Voice biometric match confirmed. Proceeding to profile verification. #agent=identity
+AI: Are you calling today regarding your firm’s Dividend Reinvestment Plan holdings?
+Client: Yes, can you provide the details of that transaction? #agent=intent
+AI: Retrieving position… Your institution holds 1,078 Palantir DRIP shares. You’d like to close all shares. Is that correct? #agent=position
+Client: Yes. Can you confirm the cost basis or last dividend posted on those shares?
+AI: Average cost basis is $11.42; last dividend $0.08 on 2025-08-30. Want a full history emailed? #agent=financialInfo
+Client: No, that’s fine. Will this close out the position entirely, or will any fractional shares remain?
+AI: This liquidation removes the entire position including fractional shares. #agent=liquidationConfirm
+AI: How would you like proceeds distributed: wire or check?
+Client: Wire transfer, please. #agent=distribution
+AI: Should funds go to the primary custodial account ending in 4821, or a sub-account?
+Client: Use the primary custodial account.
+AI: Standard settlement (2–3 days) or expedited same-day?
+Client: Expedited. #agent=settlement
+AI: Summary: Close 1,078 Palantir DRIP shares; wire proceeds to primary account ending 4821 expedited. #agent=case #after=routing`;
+
+const BASE_SCRIPT_PUSH = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+AI: A push notification will be sent to your registered device. Please approve to continue.
+Client: Approved.
+AI: Authentication confirmed. Proceeding to profile verification. #agent=identity
+AI: Are you calling today regarding your firm’s Dividend Reinvestment Plan holdings?
+Client: Yes, can you provide the details of that transaction? #agent=intent
+AI: Retrieving position… Your institution holds 1,078 Palantir DRIP shares. You’d like to close all shares. Is that correct? #agent=position
+Client: Yes. Can you confirm the cost basis or last dividend posted on those shares?
+AI: Average cost basis is $11.42; last dividend $0.08 on 2025-08-30. Want a full history emailed? #agent=financialInfo
+Client: No, that’s fine. Will this close out the position entirely, or will any fractional shares remain?
+AI: This liquidation removes the entire position including fractional shares. #agent=liquidationConfirm
+AI: How would you like proceeds distributed: wire or check?
+Client: Wire transfer, please. #agent=distribution
+AI: Should funds go to the primary custodial account ending in 4821, or a sub-account?
+Client: Use the primary custodial account.
+AI: Standard settlement (2–3 days) or expedited same-day?
+Client: Expedited. #agent=settlement
+AI: Summary: Close 1,078 Palantir DRIP shares; wire proceeds to primary account ending 4821 expedited. #agent=case #after=routing`;
+
+const BASE_SCRIPT_OTP = `AI: Welcome to BNY Client Services. This call may be recorded for quality and compliance purposes. #agent=callSetup
+AI: I’ve sent a one-time passcode to your registered number. Please enter the six digits when ready.
+Client: Entered the code.
+AI: Authentication confirmed. Proceeding to profile verification. #agent=identity
+AI: Are you calling today regarding your firm’s Dividend Reinvestment Plan holdings?
+Client: Yes, can you provide the details of that transaction? #agent=intent
+AI: Retrieving position… Your institution holds 1,078 Palantir DRIP shares. You’d like to close all shares. Is that correct? #agent=position
+Client: Yes. Can you confirm the cost basis or last dividend posted on those shares?
+AI: Average cost basis is $11.42; last dividend $0.08 on 2025-08-30. Want a full history emailed? #agent=financialInfo
+Client: No, that’s fine. Will this close out the position entirely, or will any fractional shares remain?
+AI: This liquidation removes the entire position including fractional shares. #agent=liquidationConfirm
+AI: How would you like proceeds distributed: wire or check?
+Client: Wire transfer, please. #agent=distribution
+AI: Should funds go to the primary custodial account ending in 4821, or a sub-account?
+Client: Use the primary custodial account.
+AI: Standard settlement (2–3 days) or expedited same-day?
+Client: Expedited. #agent=settlement
+AI: Summary: Close 1,078 Palantir DRIP shares; wire proceeds to primary account ending 4821 expedited. #agent=case #after=routing`;
+
+/* ===== State ===== */
+let authConfig = loadJSON(STORAGE_KEYS.auth, DEFAULT_AUTH);
+let uiConfig = loadJSON(STORAGE_KEYS.ui, DEFAULT_UI);
+let customScript = loadString(STORAGE_KEYS.script,'');
+let agentNameOverrides = loadJSON(STORAGE_KEYS.agents,{});
+let parsedScript = [];
+let running=false, timers=[], transcriptIndex=0;
+let callSeconds=0, callTimerInterval=null, otpEntered='', voiceProgressStep=0;
+const ctx={transcriptDone:false,agentsDone:false};
+const agentState=new Map();
+
+/* ===== Element Map ===== */
+const el={};
+document.querySelectorAll('[id]').forEach(n=>el[n.id]=n);
+
+/* ===== Utility ===== */
+function loadJSON(k,d){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):structuredClone(d);}catch{ return structuredClone(d);} }
+function loadString(k,d){ const v=localStorage.getItem(k);return v??d; }
+function saveJSON(k,v){ localStorage.setItem(k,JSON.stringify(v)); }
+function saveString(k,v){ localStorage.setItem(k,v); }
+const nowHMS=()=>new Date().toLocaleTimeString([], {hour12:false});
+function schedule(fn,ms){ const t=setTimeout(fn,ms); timers.push(t); return t; }
+function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+function sanitize(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+function flash(node){ node.style.display='block'; setTimeout(()=>node.style.display='none',2300); }
+
+/* ===== Title Handling ===== */
+function applyTitle(){
+  const t = uiConfig.title || DEFAULT_UI.title;
+  document.title = t;
+  if(el.appTitleHeading) el.appTitleHeading.textContent = t;
+  if(el.appTitleInput) el.appTitleInput.value = t;
+}
+function resetTitle(){
+  uiConfig.title = DEFAULT_UI.title;
+  saveJSON(STORAGE_KEYS.ui, uiConfig);
+  applyTitle();
+}
+
+/* ===== Config Drawer ===== */
+function openConfig(){
+  el.configOverlay.classList.add('show');
+  el.configOverlay.setAttribute('aria-hidden','false');
+  initGeneralTab();
+  initAuthTab();
+  initScriptTab();
+  initAgentTab();
+}
+function closeConfig(){
+  el.configOverlay.classList.remove('show');
+  el.configOverlay.setAttribute('aria-hidden','true');
+}
+
+el.configBtn.addEventListener('click',openConfig);
+el.closeConfig.addEventListener('click',closeConfig);
+el.closeConfigFooter.addEventListener('click',closeConfig);
+el.applyAndClose.addEventListener('click',()=>{ analyzeScript(); closeConfig(); });
+
+document.querySelectorAll('.config-tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.config-tabs button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab=btn.dataset.tab;
+    document.querySelectorAll('.tab-panel').forEach(p=> p.hidden = p.dataset.panel!==tab);
+  });
+});
+
+/* ---- General Tab ---- */
+function initGeneralTab(){
+  if(el.appTitleInput) el.appTitleInput.value = uiConfig.title || DEFAULT_UI.title;
+}
+el.saveGeneralBtn.addEventListener('click',()=>{
+  const val = (el.appTitleInput.value || '').trim();
+  uiConfig.title = val || DEFAULT_UI.title;
+  saveJSON(STORAGE_KEYS.ui, uiConfig);
+  applyTitle();
+  flash(el.generalSaveStatus);
+});
+el.resetGeneralBtn.addEventListener('click',()=>{
+  resetTitle();
+  flash(el.generalSaveStatus);
+});
+
+/* ---- Auth Tab ---- */
+function initAuthTab(){
+  document.querySelectorAll('input[name="authType"]').forEach(r=> r.checked = (r.value===authConfig.type));
+  el.otpCodeInput.value = authConfig.otpCode;
+  el.autoAdvanceAuth.checked = authConfig.autoAdvance;
+  el.skipSummaryIfCustom.checked = authConfig.skipSummaryIfCustom;
+}
+el.saveAuthBtn.addEventListener('click',()=>{
+  const sel=document.querySelector('input[name="authType"]:checked');
+  authConfig.type=sel?sel.value:'pindrop';
+  authConfig.otpCode=el.otpCodeInput.value.replace(/\D/g,'').slice(0,6)||'000000';
+  authConfig.autoAdvance=el.autoAdvanceAuth.checked;
+  authConfig.skipSummaryIfCustom=el.skipSummaryIfCustom.checked;
+  saveJSON(STORAGE_KEYS.auth,authConfig);
+  flash(el.authSaveStatus);
+  buildAuthBadge();
+});
+el.resetAuthDefaults.addEventListener('click',()=>{
+  authConfig=structuredClone(DEFAULT_AUTH);
+  saveJSON(STORAGE_KEYS.auth,authConfig);
+  initAuthTab();
+  flash(el.authSaveStatus);
+  buildAuthBadge();
+});
+el.testAuthVisibility.addEventListener('click',showAuthBlock);
+
+/* ---- Script Tab ---- */
+function getDefaultScriptForAuth(t){
+  if(t==='push') return BASE_SCRIPT_PUSH;
+  if(t==='otp') return BASE_SCRIPT_OTP;
+  return BASE_SCRIPT_PINDROP;
+}
+function initScriptTab(){
+  if(customScript) el.scriptInput.value=customScript;
+  else el.scriptInput.value=getDefaultScriptForAuth(authConfig.type);
+  analyzeScript();
+}
+el.loadSampleScript.addEventListener('click',()=>{
+  el.scriptInput.value=getDefaultScriptForAuth(authConfig.type);
+  analyzeScript();
+});
+el.clearScript.addEventListener('click',()=>{
+  customScript='';
+  el.scriptInput.value='';
+  analyzeScript();
+});
+el.saveScriptBtn.addEventListener('click',()=>{
+  customScript=el.scriptInput.value.trim();
+  if(customScript) saveString(STORAGE_KEYS.script,customScript);
+  else localStorage.removeItem(STORAGE_KEYS.script);
+  analyzeScript(true);
+  flash(el.scriptSuccess);
+});
+el.resetScriptDefaults.addEventListener('click',()=>{
+  customScript=getDefaultScriptForAuth(authConfig.type);
+  el.scriptInput.value=customScript;
+  localStorage.removeItem(STORAGE_KEYS.script);
+  analyzeScript();
+  flash(el.scriptSuccess);
+});
+el.scriptFile.addEventListener('change', async e=>{
+  const f=e.target.files[0];
+  if(!f) return;
+  const txt=await f.text();
+  customScript=txt;
+  el.scriptInput.value=txt;
+  analyzeScript();
+});
+
+/* ---- Agents Tab ---- */
+function buildAgentEditTable(){
+  const body=el.agentEditTable.querySelector('tbody');
+  body.innerHTML='';
+  DEFAULT_AGENTS.forEach(a=>{
+    const val=agentNameOverrides[a.id]||a.name;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><code>${a.id}</code></td>
+      <td><input data-agent-id="${a.id}" value="${sanitize(val)}"/></td>
+      <td style="font-size:11px;color:var(--text-faint)">${sanitize(a.name)}</td>`;
+    body.appendChild(tr);
+  });
+}
+function initAgentTab(){ buildAgentEditTable(); validateAgentNames(); }
+function validateAgentNames(){
+  const inputs=el.agentEditTable.querySelectorAll('input[data-agent-id]');
+  const names=[...inputs].map(i=>i.value.trim()).filter(Boolean);
+  const dup=names.filter((n,i)=>names.indexOf(n)!==i);
+  el.agentWarn.style.display=(dup.length||names.length!==inputs.length)?'block':'none';
+}
+el.saveAgentsBtn.addEventListener('click',()=>{
+  const inputs=el.agentEditTable.querySelectorAll('input[data-agent-id]');
+  const map={}; let warn=false; const names=[];
+  inputs.forEach(inp=>{
+    const id=inp.dataset.agentId;
+    const val=inp.value.trim()||'Unnamed';
+    map[id]=val;
+    names.push(val);
+  });
+  const dup=names.filter((n,i)=>names.indexOf(n)!==i);
+  if(dup.length||names.some(n=>!n.trim())) warn=true;
+  agentNameOverrides=map;
+  saveJSON(STORAGE_KEYS.agents,map);
+  validateAgentNames();
+  flash(el.agentsSaveStatus);
+  el.agentWarn.style.display=warn?'block':'none';
+});
+el.resetAgentDefaults.addEventListener('click',()=>{
+  agentNameOverrides={};
+  localStorage.removeItem(STORAGE_KEYS.agents);
+  buildAgentEditTable();
+  validateAgentNames();
+  flash(el.agentsSaveStatus);
+});
+
+/* ===== Script Parsing & Auto Triggers ===== */
+function analyzeScript(quiet=false){
+  const raw=el.scriptInput.value;
+  const lines=raw.split(/\r?\n/).map(l=>l.trim()).filter(l=>l.length>0);
+  let ai=0,client=0,invalid=0;
+  const parsed=[], errors=[];
+  lines.forEach((line,i)=>{
+    const orig=line;
+    let triggerAgent=null,afterAgent=null;
+    const directive=line.match(/#.+$/);
+    let core=line;
+    if(directive){
+      directive[0].split(/\s+/).forEach(part=>{
+        if(part.startsWith('#agent=')) triggerAgent=part.split('=')[1];
+        if(part.startsWith('#after=')) afterAgent=part.split('=')[1];
+      });
+      core=line.replace(/#.+$/,'').trim();
+    }
+    let speaker=null,text=null;
+    if(/^AI:/i.test(core)){ speaker='ai'; text=core.replace(/^AI:/i,'').trim(); ai++; }
+    else if(/^Client:/i.test(core)){ speaker='client'; text=core.replace(/^Client:/i,'').trim(); client++; }
+    else { invalid++; errors.push(`Line ${i+1} missing AI:/Client: prefix -> ${orig}`); }
+    if(speaker) parsed.push({idx:i,speaker,text,triggerAgent,afterAgent});
+  });
+  parsedScript=parsed;
+  if(!parsed.some(p=>p.triggerAgent)){
+    autoInjectTriggers(parsedScript);
+    el.scriptWarnings.style.display='block';
+    el.scriptWarnings.textContent='No agent directives detected; defaults injected.';
+  } else {
+    el.scriptWarnings.style.display='none';
+    el.scriptWarnings.textContent='';
+  }
+  el.scriptStats.innerHTML=`<span>Lines: ${lines.length}</span><span>AI Lines: ${ai}</span><span>Client Lines: ${client}</span><span>Invalid: ${invalid}</span>`;
+  if(errors.length){
+    el.scriptErrors.style.display='block';
+    el.scriptErrors.innerHTML=errors.map(sanitize).join('<br>');
+  } else {
+    el.scriptErrors.style.display='none';
+    el.scriptErrors.innerHTML='';
+  }
+  if(!quiet) el.scriptSuccess.style.display='none';
+  return parsedScript;
+}
+
+function autoInjectTriggers(arr){
+  const map=[
+    {match:/recorded/i,agent:'callSetup'},
+    {match:/voice|pindrop/i,agent:'voicePrintCapture'},
+    {match:/phrase/i,agent:'voiceRiskScoring',after:'pindropPassport'},
+    {match:/proceeding to profile/i,agent:'identity'},
+    {match:/details of that transaction/i,agent:'intent'},
+    {match:/retrieving position|holds/i,agent:'position'},
+    {match:/cost basis|dividend/i,agent:'financialInfo'},
+    {match:/fractional/i,agent:'liquidationConfirm'},
+    {match:/proceeds distributed|wire|check/i,agent:'distribution'},
+    {match:/expedited|settlement/i,agent:'settlement'},
+    {match:/summary/i,agent:'case',after:'routing'}
+  ];
+  arr.forEach(p=>{
+    if(!p.triggerAgent){
+      const m=map.find(r=>r.match.test(p.text));
+      if(m){ p.triggerAgent=m.agent; if(m.after) p.afterAgent=m.after; }
+    }
+  });
+  if(arr.some(p=>p.triggerAgent==='case') && !arr.some(p=>p.afterAgent==='routing')){
+    const last=[...arr].reverse().find(p=>p.triggerAgent==='case');
+    if(last) last.afterAgent='routing';
+  }
+}
+
+/* ===== Agents ===== */
+function buildAgentCards(){
+  el.agentsList.innerHTML='';
+  DEFAULT_AGENTS.forEach(a=>{
+    const wrap=document.createElement('div');
+    wrap.className='agent';
+    wrap.dataset.id=a.id;
+    const label=agentNameOverrides[a.id]||a.name;
+    wrap.innerHTML=`<div class="state-dot"></div>
+      <div><h3>${sanitize(label)}</h3><div class="desc">${sanitize(a.desc)}</div></div>
+      <div><span class="badge">Pending</span></div>
+      <div class="logs"></div>`;
+    el.agentsList.appendChild(wrap);
+    agentState.set(a.id,{
+      el:wrap,
+      dot:wrap.querySelector('.state-dot'),
+      badge:wrap.querySelector('.badge'),
+      logs:wrap.querySelector('.logs'),
+      status:'pending'
+    });
+    logAgent(a.id,'status=idle');
+  });
+  setProgress(0);
+}
+function setAgentStatus(id,status){
+  const st=agentState.get(id); if(!st)return;
+  st.status=status;
+  st.el.classList.remove('running','success');
+  st.dot.className='state-dot';
+  st.badge.className='badge';
+  st.badge.textContent = status==='pending'?'Pending':status==='running'?'Running':'Success';
+  if(status==='running'){ st.el.classList.add('running'); st.dot.classList.add('running'); }
+  if(status==='success'){ st.el.classList.add('success'); st.dot.classList.add('success'); st.badge.classList.add('success'); }
+  updateProgress();
+}
+function logAgent(id,msg){
+  const st=agentState.get(id); if(!st)return;
+  const div=document.createElement('div');
+  div.className='logline';
+  div.innerHTML=`<span class="logtime">[${nowHMS()}]</span>`+sanitize(msg).replace(/(\w+)=/g,'<span class="kv">$1=</span>');
+  st.logs.appendChild(div);
+  st.logs.scrollTop=st.logs.scrollHeight;
+}
+function startAgent(id){
+  const st=agentState.get(id); if(!st)return;
+  if(st.status!=='pending') return;
+  setAgentStatus(id,'running');
+  logAgent(id,'status=started');
+  const fast=el.fastMode.checked;
+  const dur=fast?Math.max(260,Math.floor((900+rand(-280,280))*0.4)):(900+rand(-280,280));
+  schedule(()=>{
+    logAgent(id,'status=completed');
+    setAgentStatus(id,'success');
+    if(id==='pindropPassport') finalizePindropUI();
+    if(id==='routing'){ ctx.agentsDone=true; maybeComplete(); }
+  },dur);
+}
+function chainAgentAfter(prev,next){
+  const poll=setInterval(()=>{
+    const p=agentState.get(prev);
+    if(p&&p.status==='success'){ clearInterval(poll); startAgent(next); }
+  },120);
+  timers.push(poll);
+}
+function updateProgress(){
+  const total=agentState.size||1;
+  const done=[...agentState.values()].filter(s=>s.status==='success').length;
+  setProgress(Math.round(done/total*100));
+}
+function setProgress(pct){ if(el.globalProgress) el.globalProgress.style.width=pct+'%'; }
+
+/* ===== Transcript ===== */
+const TIMING={baseCharMs:30,minCharMs:14,fastFactor:.35,postPause:420,postPauseFast:140};
+function runTranscriptSequential(i=0){
+  if(i>=parsedScript.length){ ctx.transcriptDone=true; maybeComplete(); return; }
+  const line=parsedScript[i];
+  if(line.triggerAgent) startAgent(line.triggerAgent);
+  appendLine(line, ()=>{
+    if(line.afterAgent) chainAgentAfter(line.triggerAgent,line.afterAgent);
+    runTranscriptSequential(i+1);
+  });
+}
+function appendLine(line,done){
+  const isAI=line.speaker==='ai';
+  const node=document.createElement('div');
+  node.className='msg '+(isAI?'ai':'client')+' fade-in';
+  node.innerHTML=`<div class="meta">${isAI?'IVR AI':'Client'} • ${nowHMS()}</div><div class="body"></div>`;
+  el.transcript.appendChild(node);
+  el.transcript.scrollTop=el.transcript.scrollHeight;
+  setSpeakingState(isAI);
+  typewriter(node.querySelector('.body'), line.text, ()=>{
+    schedule(()=>{
+      clearSpeaking();
+      done();
+    }, el.fastMode.checked?TIMING.postPauseFast:TIMING.postPause);
+  });
+}
+function typewriter(elm,text,cb){
+  if(el.fastMode.checked){ elm.textContent=text; cb(); return; }
+  const len=text.length;
+  const per=Math.max(TIMING.minCharMs, TIMING.baseCharMs - Math.floor(len/55));
+  let i=0;(function step(){ elm.textContent=text.slice(0,i); if(i<len){ i++; schedule(step,per);} else cb(); })();
+}
+function setSpeakingState(ai){
+  if(ai){ el.aiStatus.textContent='Speaking'; el.clientStatus.textContent='Listening'; el.aiParty.classList.add('speaking'); el.clientParty.classList.remove('speaking'); }
+  else { el.clientStatus.textContent='Speaking'; el.aiStatus.textContent='Listening'; el.clientParty.classList.add('speaking'); el.aiParty.classList.remove('speaking'); }
+}
+function clearSpeaking(){ el.aiStatus.textContent='Idle'; el.clientStatus.textContent='Idle'; el.aiParty.classList.remove('speaking'); el.clientParty.classList.remove('speaking'); }
+
+/* ===== Auth Blocks ===== */
+function showAuthBlock(){
+  el.authBlockContainer.innerHTML='';
+  if(authConfig.type==='pindrop'){ buildPindrop(); animateVoiceProgress(); }
+  else if(authConfig.type==='push'){ buildPush(); wirePush(); }
+  else { buildOTP(); buildOtpUI(); autoFillOTP(); }
+}
+function buildPindrop(){
+  el.authBlockContainer.innerHTML=`
+  <div class="auth-block">
+    <div class="block-title">Voice Biometrics <span class="badge-inline" id="pindropMini">INIT</span></div>
+    <div class="waveform" id="voiceWave">${'<span></span>'.repeat(6)}</div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="progress-pill" style="flex:1;"><span id="voiceProgress"></span></div>
+      <div class="auth-complete" id="voiceAuthComplete">Matched</div>
+    </div>
+    <div style="font-size:11px;color:var(--text-faint);">Phrase: “Secure access for Global Capital”</div>
+  </div>`;
+}
+function animateVoiceProgress(){
+  if(authConfig.type!=='pindrop') return;
+  voiceProgressStep=0; const total=8;
+  function step(){
+    voiceProgressStep++;
+    const vp=el.voiceProgress;
+    if(vp) vp.style.width=Math.min(100,Math.round(voiceProgressStep/total*100))+'%';
+    if(voiceProgressStep<total) schedule(step, el.fastMode.checked?120:300);
+  }
+  step();
+}
+function finalizePindropUI(){
+  if(authConfig.type!=='pindrop') return;
+  const mini=el.pindropMini, comp=el.voiceAuthComplete, vp=el.voiceProgress;
+  if(mini) mini.textContent='PASS';
+  if(comp) comp.classList.add('show');
+  if(vp) vp.style.width='100%';
+  el.authStatusBadge.textContent='Auth Passed';
+  showToast('Voice Auth','Pindrop Passport match (low risk).',true);
+}
+function buildPush(){
+  el.authBlockContainer.innerHTML=`
+  <div class="auth-block">
+    <div class="block-title">App Push Verification</div>
+    <div style="font-size:11.5px;color:var(--text-faint);">A push was sent to your registered device.</div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn primary" id="pushApprove" style="flex:1;">Approve</button>
+      <button class="btn ghost" id="pushDeny" style="flex:1;">Deny</button>
+    </div>
+  </div>`;
+}
+function wirePush(){
+  const approve=el.pushApprove, deny=el.pushDeny;
+  if(approve){
+    approve.addEventListener('click',()=>{
+      el.authStatusBadge.textContent='Auth Passed';
+      approve.disabled=true; if(deny) deny.disabled=true;
+      showToast('Push Approved','Authentication successful.',true);
+    });
+  }
+  if(deny){
+    deny.addEventListener('click',()=>{
+      el.authStatusBadge.textContent='Denied';
+      deny.disabled=true; if(approve) approve.disabled=true;
+      showToast('Push Denied','User denied push.',false);
+    });
+  }
+}
+function buildOTP(){
+  el.authBlockContainer.innerHTML=`
+  <div class="auth-block">
+    <div class="block-title">One-Time Passcode</div>
+    <div style="font-size:11.5px;color:var(--text-faint);">Enter the 6 digit code we sent.</div>
+    <div class="otp-display" id="otpDisplay"></div>
+    <div class="keypad" id="otpKeypad"></div>
+    <div style="font-size:10px;color:var(--text-faint);">Auto-fills for demo.</div>
+  </div>`;
+}
+function buildOtpUI(){
+  if(authConfig.type!=='otp') return;
+  const disp=el.otpDisplay, kp=el.otpKeypad;
+  if(!disp||!kp) return;
+  disp.innerHTML='';
+  for(let i=0;i<6;i++){ const s=document.createElement('span'); s.textContent='•'; disp.appendChild(s); }
+  kp.innerHTML='';
+  ['1','2','3','4','5','6','7','8','9','CLR','0','OK'].forEach(k=>{
+    const b=document.createElement('button'); b.textContent=k;
+    b.addEventListener('click',()=>otpKeyPress(k)); kp.appendChild(b);
+  });
+}
+function otpKeyPress(k){
+  if(k==='CLR'){ otpEntered=''; updateOtpDisplay(); return; }
+  if(k==='OK'){ if(otpEntered.length===6) verifyOtp(); else showToast('OTP','Incomplete code.'); return; }
+  if(/\d/.test(k) && otpEntered.length<6){
+    otpEntered+=k; updateOtpDisplay();
+    if(otpEntered.length===6) verifyOtp();
+  }
+}
+function updateOtpDisplay(){
+  const disp=el.otpDisplay; if(!disp) return;
+  [...disp.children].forEach((c,i)=> c.textContent = i<otpEntered.length?otpEntered[i]:'•');
+}
+function verifyOtp(){
+  if(otpEntered===authConfig.otpCode){
+    el.authStatusBadge.textContent='Auth Passed';
+    showToast('OTP Verified','Code accepted.',true);
+  } else {
+    el.authStatusBadge.textContent='Auth Failed';
+    showToast('OTP Failed','Incorrect code.',false);
+  }
+}
+function autoFillOTP(){
+  if(authConfig.type!=='otp') return;
+  const code=authConfig.otpCode; let i=0;
+  function step(){
+    if(i>=code.length) return;
+    otpEntered+=code[i]; updateOtpDisplay(); i++;
+    if(i===code.length) schedule(verifyOtp, el.fastMode.checked?150:420);
+    else schedule(step, el.fastMode.checked?90:310);
+  }
+  step();
+}
+
+/* ===== Call Flow ===== */
+function startCall(){
+  el.phoneCallState.textContent='Dialing…'; el.dialStatus.textContent='Dialing…';
+  let rings=0; const fast=el.fastMode.checked;
+  const ringDur=fast?380:1080; const pause=fast?220:620;
+  function ring(){
+    rings++; el.dialStatus.textContent=`Ringing… (${rings})`; el.phoneCallState.textContent='Ringing…';
+    if(rings>=2) schedule(connectCall,pause);
+    else schedule(()=>schedule(ring,pause), ringDur);
+  }
+  schedule(ring, fast?200:520);
+}
+function connectCall(){
+  el.dialLayer.classList.remove('active');
+  el.activeLayer.classList.add('active');
+  el.phoneCallState.textContent='Connected';
+  startCallTimer();
+  schedule(()=>{
+    el.phoneCallState.textContent='Live';
+    showAuthBlock();
+    runTranscriptSequential(0);
+  },600);
+}
+function startCallTimer(){
+  callSeconds=0; el.callTimer.textContent='00:00';
+  callTimerInterval=setInterval(()=>{
+    callSeconds++;
+    const m=String(Math.floor(callSeconds/60)).padStart(2,'0');
+    const s=String(callSeconds%60).padStart(2,'0');
+    el.callTimer.textContent=`${m}:${s}`;
+  },1000);
+  timers.push(callTimerInterval);
+}
+
+/* ===== Completion / Toast ===== */
+function maybeComplete(){
+  if(ctx.transcriptDone && ctx.agentsDone){
+    el.resultSummary.textContent='Case routed: DRIP liquidation (auth='+authConfig.type+').';
+    showToast('Handoff','Routing context to specialist.',false);
+  }
+}
+function showToast(title,body,success=false){
+  el.toastTitle.textContent=title;
+  el.toastBody.textContent=body;
+  el.phoneToast.classList.toggle('success',success);
+  el.phoneToast.classList.add('show');
+  schedule(()=> el.phoneToast.classList.remove('show'),5200);
+}
+
+/* ===== Reset Runtime ===== */
+function resetRuntime(){
+  clearTimers();
+  running=false;
+  transcriptIndex=0;
+  otpEntered=''; voiceProgressStep=0;
+  ctx.transcriptDone=false; ctx.agentsDone=false;
+  el.startBtn.disabled=false; el.resetBtn.disabled=true;
+  el.transcript.innerHTML=''; el.resultSummary.textContent='';
+  setProgress(0);
+  el.aiStatus.textContent='Idle'; el.clientStatus.textContent='Idle';
+  el.aiParty.classList.remove('speaking'); el.clientParty.classList.remove('speaking');
+  agentState.clear(); buildAgentCards();
+  el.dialLayer.classList.add('active'); el.activeLayer.classList.remove('active');
+  el.authStatusBadge.textContent='Auth Pending'; el.authBlockContainer.innerHTML='';
+  callSeconds=0; if(callTimerInterval) clearInterval(callTimerInterval); el.callTimer.textContent='00:00';
+  buildAuthBadge();
+  if(!customScript){ el.scriptInput.value=getDefaultScriptForAuth(authConfig.type); analyzeScript(); } else analyzeScript();
+}
+function buildAuthBadge(){
+  el.authTypeBadge.textContent='Auth: '+(authConfig.type==='pindrop'?'Pindrop':authConfig.type==='push'?'Push':'OTP');
+}
+
+/* ===== Fast Mode ===== */
+el.fastMode.addEventListener('change',()=>{
+  if(!running){
+    el.appRoot.classList.toggle('fast-mode-active', el.fastMode.checked);
+    el.modeNotice.textContent= el.fastMode.checked ? 'FAST MODE':'';
+  }
+});
+
+/* ===== Controls ===== */
+el.startBtn.addEventListener('click',()=>{
+  if(running) return;
+  running=true;
+  el.startBtn.disabled=true;
+  el.resetBtn.disabled=false;
+  el.appRoot.classList.toggle('fast-mode-active', el.fastMode.checked);
+  el.modeNotice.textContent = el.fastMode.checked ? 'FAST MODE':'';
+  startCall();
+});
+el.resetBtn.addEventListener('click',resetRuntime);
+el.btnMute.addEventListener('click',()=>{
+  const on=el.btnMute.getAttribute('data-on')==='1';
+  el.btnMute.setAttribute('data-on', on?'0':'1');
+  showToast('Mute', on?'Microphone unmuted.':'Microphone muted.');
+});
+el.btnSpeaker.addEventListener('click',()=>{
+  const on=el.btnSpeaker.getAttribute('data-on')==='1';
+  el.btnSpeaker.setAttribute('data-on', on?'0':'1');
+  showToast('Speaker', on?'Speaker off.':'Speaker on.');
+});
+el.btnEnd.addEventListener('click',()=>{
+  el.phoneCallState.textContent='Ended';
+  showToast('Call Ended','Simulation stopped.');
+  clearTimers();
+});
+
+/* ===== Clock ===== */
+function updateClock(){
+  if(el.sbTime){
+    el.sbTime.textContent=new Date().toLocaleTimeString([], {hour12:false,hour:'2-digit',minute:'2-digit'});
+  }
+}
+setInterval(updateClock,20000); updateClock();
+
+/* ===== Initialization ===== */
+function initialLoad(){
+  applyTitle();
+  if(!customScript){
+    el.scriptInput.value=getDefaultScriptForAuth(authConfig.type);
+  }
+  analyzeScript();
+  buildAgentCards();
+  buildAuthBadge();
+  resetRuntime();
+}
+initialLoad();
+
+/* Error logging */
+window.addEventListener('error',e=>console.error('DEMO ERROR:',e.message,e));
+</script>
+</body>
+</html>
