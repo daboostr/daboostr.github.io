@@ -1,36 +1,171 @@
 <html lang="en" data-theme="dark">
 <head>
   <style>
-    /* Add background styling for hero section */
+    /* Modern hero section with clean image presentation */
     .hero {
-      background-image: url('assets/centerpiece.gif');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      text-align: center;
+      min-height: 80vh;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
     }
     
-    /* Add overlay for better text readability */
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 1;
+    .hero-image-container {
+      margin-bottom: 40px;
+      max-width: 500px;
+      width: 100%;
     }
     
-    /* Ensure content is above overlay */
+    .hero-image {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
     .hero-content {
-      position: relative;
-      z-index: 2;
+      max-width: 600px;
+      margin: 0 auto;
     }
     
-    /* Remove the original hero image */
-    .hero-gif {
-      display: none;
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .hero .lead {
+      font-size: 1.25rem;
+      color: #b0b0b0;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+    
+    .cta-group {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 32px;
+    }
+    
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+    
+    .btn.primary {
+      background: linear-gradient(135deg, #0066cc 0%, #004499 100%);
+      color: white;
+    }
+    
+    .btn.primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 102, 204, 0.3);
+    }
+    
+    .btn.ghost {
+      color: #ffffff;
+      border-color: #404040;
+    }
+    
+    .btn.ghost:hover {
+      border-color: #0066cc;
+      color: #0066cc;
+    }
+    
+    .meta-badges {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .badge {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      font-size: 0.875rem;
+      color: #e0e0e0;
+      backdrop-filter: blur(10px);
+    }
+    
+    /* Demo section styling */
+    .demos {
+      padding: 80px 20px;
+      background: #fafafa;
+      color: #333;
+    }
+    
+    .demos h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 48px;
+      color: #1a1a1a;
+    }
+    
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .project-card {
+      background: white;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .project-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+    }
+    
+    .project-card h3 {
+      margin-bottom: 16px;
+    }
+    
+    .project-card h3 a {
+      color: #0066cc;
+      text-decoration: none;
+      font-size: 1.5rem;
+    }
+    
+    .project-card p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    .project-card footer {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .tag {
+      padding: 4px 12px;
+      background: #e6f3ff;
+      color: #0066cc;
+      border-radius: 16px;
+      font-size: 0.875rem;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -48,8 +183,8 @@
         <span class="sr-only">Menu</span>
       </button>
       <ul id="navMenu">
-        <li><a href="#projects">Projects</a></li>
         <li><a href="#demos">Demos</a></li>
+        <li><a href="#projects">Projects</a></li>
         <li><a href="#features">Highlights</a></li>
         <li><a href="#stack">Stack</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -64,11 +199,11 @@
 
   <main id="main">
     <section class="hero" id="hero">
-      <div class="hero-media">
+      <div class="hero-image-container">
         <img
           src="assets/centerpiece.gif"
-          alt="Animated character"
-          class="hero-gif"
+          alt="Animated developer character"
+          class="hero-image"
           decoding="async"
           fetchpriority="high"
         />
@@ -83,18 +218,12 @@
         </p>
         <div class="cta-group">
           <a class="btn primary" href="#demos">View Live Demos</a>
-            <a class="btn ghost" href="https://github.com/daboostr" target="_blank" rel="noopener">GitHub Profile →</a>
+          <a class="btn ghost" href="https://github.com/daboostr" target="_blank" rel="noopener">GitHub Profile →</a>
         </div>
-        <div class="meta-badges" aria-label="Site traits">
+        <div class="meta-badges">
           <span class="badge">Live Demos</span>
           <span class="badge">Performance Minded</span>
           <span class="badge">Continuous Learning</span>
-        </div>
-      </div>
-      <div class="scroll-indicator" aria-hidden="true">
-        <span>Scroll</span>
-        <div class="mouse">
-          <div class="wheel"></div>
         </div>
       </div>
     </section>
