@@ -1,4 +1,39 @@
 <html lang="en" data-theme="dark">
+<head>
+  <style>
+    /* Add background styling for hero section */
+    .hero {
+      background-image: url('assets/centerpiece.gif');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: relative;
+    }
+    
+    /* Add overlay for better text readability */
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1;
+    }
+    
+    /* Ensure content is above overlay */
+    .hero-content {
+      position: relative;
+      z-index: 2;
+    }
+    
+    /* Remove the original hero image */
+    .hero-gif {
+      display: none;
+    }
+  </style>
+</head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
@@ -14,6 +49,7 @@
       </button>
       <ul id="navMenu">
         <li><a href="#projects">Projects</a></li>
+        <li><a href="#demos">Demos</a></li>
         <li><a href="#features">Highlights</a></li>
         <li><a href="#stack">Stack</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -43,14 +79,14 @@
           Developer Experiences
         </h1>
         <p class="lead">
-          Experiments, tooling, performance techniques, and practical engineering practices—shared openly.
+          Interactive demos, tooling experiments, and practical engineering solutions—built for real-world impact.
         </p>
         <div class="cta-group">
-          <a class="btn primary" href="#projects">Explore Projects</a>
+          <a class="btn primary" href="#demos">View Live Demos</a>
             <a class="btn ghost" href="https://github.com/daboostr" target="_blank" rel="noopener">GitHub Profile →</a>
         </div>
         <div class="meta-badges" aria-label="Site traits">
-          <span class="badge">Open Source Focus</span>
+          <span class="badge">Live Demos</span>
           <span class="badge">Performance Minded</span>
           <span class="badge">Continuous Learning</span>
         </div>
@@ -63,30 +99,69 @@
       </div>
     </section>
 
+    <section class="demos" id="demos" aria-labelledby="demos-title">
+      <h2 id="demos-title">Live Interactive Demos</h2>
+      <div class="project-list">
+        <article class="project-card">
+          <div class="project-body">
+            <h3><a href="Demos/CopilotIVRAgents/">IVR Orchestrator Demo</a></h3>
+            <p>Interactive simulation of IVR agent orchestration for bank account opening. Features real-time transcript, downstream agent coordination, and configurable workflows.</p>
+          </div>
+          <footer>
+            <span class="tag">Interactive</span>
+            <span class="tag">IVR</span>
+            <span class="tag">Agent Orchestration</span>
+          </footer>
+        </article>
+        <article class="project-card">
+          <div class="project-body">
+            <h3><a href="Demos/MyFam.html">MyFam - Graph API Parser</a></h3>
+            <p>Visual parser for Microsoft Graph API responses. Upload JSON data to see shared files organized by people with thumbnail previews and filtering capabilities.</p>
+          </div>
+          <footer>
+            <span class="tag">Graph API</span>
+            <span class="tag">Data Visualization</span>
+            <span class="tag">Microsoft</span>
+          </footer>
+        </article>
+        <article class="project-card">
+          <div class="project-body">
+            <h3><a href="Demos/WF.html">Wells Fargo Bank Demo</a></h3>
+            <p>Banking website mockup with integrated chatbot experience. Demonstrates customer service automation with resizable chat interface.</p>
+          </div>
+          <footer>
+            <span class="tag">Banking</span>
+            <span class="tag">Chatbot</span>
+            <span class="tag">Customer Service</span>
+          </footer>
+        </article>
+      </div>
+    </section>
+
     <section class="features" id="features" aria-labelledby="features-title">
-      <h2 id="features-title">What You’ll Find</h2>
+      <h2 id="features-title">What You'll Find</h2>
       <div class="feature-grid">
         <article class="feature">
-          <h3>Optimized Patterns</h3>
-          <p>Code snippets and approaches refined for clarity, performance, and maintainability.</p>
+          <h3>Interactive Prototypes</h3>
+          <p>Working demos that showcase real-world scenarios with functional user interfaces and simulated workflows.</p>
         </article>
         <article class="feature">
           <h3>Automation & Tooling</h3>
-          <p>Dev environment improvements, scripts, and workflow enhancers.</p>
+          <p>Dev environment improvements, scripts, and workflow enhancers for practical development challenges.</p>
         </article>
         <article class="feature">
-          <h3>Technical Notes</h3>
-          <p>Concise write‑ups on experiments, debugging sessions, and architectural tradeoffs.</p>
+          <h3>Technical Experiments</h3>
+          <p>Hands-on explorations of new technologies, patterns, and integration approaches.</p>
         </article>
         <article class="feature">
-          <h3>Incremental Evolution</h3>
-          <p>Shipping small, measurable improvements—not overengineering.</p>
+          <h3>Incremental Innovation</h3>
+          <p>Building practical solutions that solve real problems—not overengineering for its own sake.</p>
         </article>
       </div>
     </section>
 
     <section class="projects" id="projects" aria-labelledby="projects-title">
-      <h2 id="projects-title">Highlighted Projects</h2>
+      <h2 id="projects-title">Development Projects</h2>
       <div class="project-list">
         <article class="project-card">
           <div class="project-body">
