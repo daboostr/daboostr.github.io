@@ -658,17 +658,6 @@
             <span class="tag">Microsoft</span>
           </footer>
         </article>
-        <article class="project-card">
-          <div class="project-body">
-            <h3><a href="Demos/WF.html">Wells Fargo Bank Demo</a></h3>
-            <p>Banking website mockup with integrated chatbot experience. Demonstrates customer service automation with resizable chat interface.</p>
-          </div>
-          <footer>
-            <span class="tag">Banking</span>
-            <span class="tag">Chatbot</span>
-            <span class="tag">Customer Service</span>
-          </footer>
-        </article>
       </div>
     </section>
 
@@ -715,6 +704,18 @@
           <footer>
             <span class="tag">Data</span>
             <span class="tag">CLI</span>
+          </footer>
+        </article>
+        <article class="project-card">
+          <div class="project-body">
+            <h3><a href="https://github.com/daboostr/my-charger" target="_blank" rel="noopener">My Charger</a></h3>
+            <p>Android Capacitor app for Dodge/Stellantis Uconnect vehicles with vehicle status, remote commands, and driving/charging history. <a href="https://github.com/daboostr/my-charger/raw/main/downloads/My-Charger-beta.apk" target="_blank" rel="noopener">Download the beta APK.</a></p>
+          </div>
+          <footer>
+            <span class="tag">Android</span>
+            <span class="tag">Capacitor</span>
+            <span class="tag">Uconnect</span>
+            <span class="tag">Vehicle API</span>
           </footer>
         </article>
         <article class="project-card pending">
