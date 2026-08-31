@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechConnect 2026 - Innovation Summit</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 8 L20 32 M8 20 L32 20" stroke="currentColor" stroke-width="2"/>
+          <circle cx="20" cy="20" r="8" fill="currentColor" opacity="0.3"/>
+        </svg>
+        <h1>TechConnect 2026</h1>
+      </div>
+      <nav class="nav">
+        <a href="#schedule">Schedule</a>
+        <a href="#speakers">Speakers</a>
+        <a href="#register">Register</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-content">
+        <h2 class="hero-title">Innovation Summit</h2>
+        <p class="hero-subtitle">Join the Future of Technology</p>
+        <p class="hero-date">June 15-17, 2026 • San Francisco, CA</p>
+        <div class="hero-actions">
+          <button class="btn primary" id="registerBtn">Register Now</button>
+          <button class="btn secondary" id="learnMoreBtn">Learn More</button>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <span class="stat-number" data-target="50">0</span>
+            <span class="stat-label">Speakers</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" data-target="100">0</span>
+            <span class="stat-label">Sessions</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number" data-target="2000">0</span>
+            <span class="stat-label">Attendees</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tracks" id="schedule">
+      <h2 class="section-title">Conference Tracks</h2>
+      <div class="track-grid">
+        <div class="track-card" data-track="ai">
+          <div class="track-icon">🤖</div>
+          <h3>AI & Machine Learning</h3>
+          <p>Explore cutting-edge developments in artificial intelligence and ML applications</p>
+          <button class="track-btn" data-track-id="ai">View Sessions</button>
+        </div>
+        <div class="track-card" data-track="cloud">
+          <div class="track-icon">☁️</div>
+          <h3>Cloud & DevOps</h3>
+          <p>Modern infrastructure, containerization, and deployment strategies</p>
+          <button class="track-btn" data-track-id="cloud">View Sessions</button>
+        </div>
+        <div class="track-card" data-track="web">
+          <div class="track-icon">🌐</div>
+          <h3>Web Technologies</h3>
+          <p>Frontend frameworks, performance optimization, and web standards</p>
+          <button class="track-btn" data-track-id="web">View Sessions</button>
+        </div>
+        <div class="track-card" data-track="security">
+          <div class="track-icon">🔒</div>
+          <h3>Security & Privacy</h3>
+          <p>Cybersecurity best practices and data protection strategies</p>
+          <button class="track-btn" data-track-id="security">View Sessions</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="speakers" id="speakers">
+      <h2 class="section-title">Featured Speakers</h2>
+      <div class="speaker-grid">
+        <div class="speaker-card">
+          <div class="speaker-avatar">
+            <div class="avatar-placeholder">JS</div>
+          </div>
+          <h3 class="speaker-name">Dr. Jane Smith</h3>
+          <p class="speaker-title">Chief AI Researcher, TechCorp</p>
+          <p class="speaker-bio">Leading expert in neural networks and deep learning</p>
+        </div>
+        <div class="speaker-card">
+          <div class="speaker-avatar">
+            <div class="avatar-placeholder">MJ</div>
+          </div>
+          <h3 class="speaker-name">Michael Johnson</h3>
+          <p class="speaker-title">VP Engineering, CloudScale</p>
+          <p class="speaker-bio">Pioneer in cloud-native architecture and microservices</p>
+        </div>
+        <div class="speaker-card">
+          <div class="speaker-avatar">
+            <div class="avatar-placeholder">SC</div>
+          </div>
+          <h3 class="speaker-name">Sarah Chen</h3>
+          <p class="speaker-title">Security Architect, SecureNet</p>
+          <p class="speaker-bio">Cybersecurity thought leader and privacy advocate</p>
+        </div>
+        <div class="speaker-card">
+          <div class="speaker-avatar">
+            <div class="avatar-placeholder">RP</div>
+          </div>
+          <h3 class="speaker-name">Raj Patel</h3>
+          <p class="speaker-title">Frontend Lead, WebDev Inc</p>
+          <p class="speaker-bio">Performance optimization guru and web standards advocate</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="registration" id="register">
+      <div class="registration-card">
+        <h2 class="section-title">Register for TechConnect 2026</h2>
+        <form class="registration-form" id="registrationForm">
+          <div class="form-group">
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="company">Company</label>
+            <input type="text" id="company" name="company">
+          </div>
+          <div class="form-group">
+            <label for="track">Preferred Track</label>
+            <select id="track" name="track">
+              <option value="">Select a track</option>
+              <option value="ai">AI & Machine Learning</option>
+              <option value="cloud">Cloud & DevOps</option>
+              <option value="web">Web Technologies</option>
+              <option value="security">Security & Privacy</option>
+            </select>
+          </div>
+          <button type="submit" class="btn primary full-width">Complete Registration</button>
+        </form>
+        <div class="registration-success" id="successMessage" style="display: none;">
+          <div class="success-icon">✓</div>
+          <h3>Registration Successful!</h3>
+          <p>Thank you for registering for TechConnect 2026. Check your email for confirmation details.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>&copy; 2026 TechConnect. All rights reserved.</p>
+      <div class="footer-links">
+        <a href="#schedule">Schedule</a>
+        <a href="#speakers">Speakers</a>
+        <a href="#register">Register</a>
+        <a href="https://github.com/daboostr/daboostr.github.io">Back to Portfolio</a>
+      </div>
+    </footer>
+  </div>
+
+  <div class="modal" id="sessionModal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeModal">&times;</button>
+      <h2 id="modalTitle">Track Sessions</h2>
+      <div id="modalBody" class="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

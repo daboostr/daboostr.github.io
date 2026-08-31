@@ -313,6 +313,17 @@
             <a class="button primary" href="https://github.com/daboostr/CRMComparer" target="_blank" rel="noopener">View on GitHub</a>
           </div>
         </article>
+        <article class="project-card">
+          <div class="project-body">
+            <h3><a href="Demos/TechConnect2026/">TechConnect 2026</a></h3>
+            <p>Interactive tech conference website showcasing event schedule, speaker lineup, and registration system with animated counters and modal sessions view.</p>
+          </div>
+          <footer>
+            <span class="tag">Conference</span>
+            <span class="tag">Interactive</span>
+            <span class="tag">Event Management</span>
+          </footer>
+        </article>
       </div>
     </section>
   </main>
