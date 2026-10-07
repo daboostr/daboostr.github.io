@@ -103,6 +103,9 @@
       transform: rotate(-1.2deg);
     }
     .hero-art .frame img { display: block; width: 100%; }
+    .video-frame{max-width:960px;margin:0 auto;border:3px solid var(--brass);border-radius:12px;overflow:hidden;
+      box-shadow:0 22px 55px rgba(0,0,0,.6);background:#000;}
+    .video-frame video{display:block;width:100%;height:auto;}
     .hero-art .ribbon {
       position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%) rotate(-1.2deg);
       background: var(--scarlet); color: #fff; font-weight: 800; letter-spacing: 0.08em;
@@ -211,6 +214,7 @@
     <a class="brand" href="/"><span class="logo" aria-hidden="true">★</span>DaBoostR</a>
     <div class="header-actions">
       <a class="header-link" href="/">Home</a>
+      <a class="header-link" href="#watch">Watch</a>
       <a class="header-link" href="https://github.com/daboostr/Microsoft-Clippy-2.OOHRAH" target="_blank" rel="noopener">GitHub</a>
       <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
         <span class="theme-icon" data-icon-light="Light" data-icon-dark="Dark">Dark</span>
@@ -236,6 +240,22 @@
         <div class="frame"><img src="assets/tars-hero.png" alt="T.A.R.S. - the Microsoft Clippy 2.0 Marine, pointing at you"></div>
         <span class="ribbon">Your AI Force Multiplier</span>
       </div>
+    </section>
+
+    <!-- RECRUITMENT VIDEO -->
+    <section class="block" id="watch">
+      <div class="section-head" style="text-align:center">
+        <span class="kicker">Watch the call to action</span>
+        <h2>40 seconds. One Marine. Your orders.</h2>
+      </div>
+      <div class="video-frame">
+        <video controls preload="metadata" playsinline poster="assets/video-poster.jpg">
+          <source src="assets/TARS_Recruitment.mp4" type="video/mp4">
+          Your browser doesn't support embedded video —
+          <a href="assets/TARS_Recruitment.mp4">download the recruitment video</a>.
+        </video>
+      </div>
+      <p style="text-align:center;color:var(--muted);margin-top:1rem">Narrated by TARS himself. Sound on. 🔊</p>
     </section>
 
     <!-- WHAT -->
