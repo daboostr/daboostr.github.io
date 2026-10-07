@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Deploy Microsoft Clippy 2.0 - T.A.R.S., your AI force multiplier. A hands-free wake-word voice companion for Microsoft Scout.">
+  <meta property="og:title" content="T.A.R.S. Wants YOU - Microsoft Clippy 2.OOHRAH">
+  <meta property="og:description" content="Deploy Copilot in Scout. Hands-free voice companion with the TARS personality. Same mission. New amplifier.">
+  <meta property="og:image" content="assets/poster.png">
+  <title>T.A.R.S. Wants YOU — Microsoft Clippy 2.OOHRAH</title>
+  <style>
+    :root {
+      /* USMC recruitment-poster palette */
+      --scarlet: #b01e24;
+      --scarlet-bright: #e0301f;
+      --brass: #c8a24b;
+      --parchment: #e7d9ba;
+      --parchment-ink: #241a10;
+      --navy: #16243a;
+      --page-bg: #14110e;
+      --surface: rgba(28, 23, 18, 0.82);
+      --surface-soft: rgba(24, 20, 16, 0.74);
+      --surface-hover: rgba(36, 29, 22, 0.92);
+      --text: #f3ece0;
+      --text-muted: #b9ab93;
+      --accent: #e0301f;
+      --accent-strong: #b01e24;
+      --border: rgba(200, 162, 75, 0.28);
+      --tag-bg: rgba(176, 30, 36, 0.18);
+      --header-bg: rgba(16, 13, 10, 0.94);
+    }
+    [data-theme="light"] {
+      --page-bg: #efe6d2;
+      --surface: rgba(231, 217, 186, 0.92);
+      --surface-soft: rgba(231, 217, 186, 0.8);
+      --surface-hover: rgba(236, 224, 197, 0.98);
+      --text: #241a10;
+      --text-muted: #5f5033;
+      --accent: #b01e24;
+      --accent-strong: #8a161b;
+      --border: rgba(36, 26, 16, 0.22);
+      --tag-bg: rgba(176, 30, 36, 0.12);
+      --header-bg: rgba(231, 217, 186, 0.96);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6; scroll-behavior: smooth;
+    }
+    body { background: var(--page-bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    /* Atmospheric blurred-poster backdrop */
+    body::before {
+      background: url("assets/poster-bg.jpg") center top / cover no-repeat fixed;
+      content: ""; inset: 0; position: fixed; z-index: -2; opacity: 0.5;
+    }
+    body::after {
+      content: ""; inset: 0; position: fixed; z-index: -1;
+      background: linear-gradient(180deg, rgba(20,17,14,0.72) 0%, rgba(20,17,14,0.88) 45%, rgba(20,17,14,0.96) 100%);
+    }
+    [data-theme="light"] body::before { opacity: 0.22; }
+    [data-theme="light"] body::after {
+      background: linear-gradient(180deg, rgba(239,230,210,0.82) 0%, rgba(239,230,210,0.92) 50%, rgba(239,230,210,0.97) 100%);
+    }
+
+    .stencil { font-family: "Arial Black", "Impact", sans-serif; letter-spacing: 0.01em; text-transform: uppercase; }
+
+    .skip-link { background: var(--scarlet); color: #fff; left: 8px; padding: 8px 12px; position: absolute; text-decoration: none; top: -48px; z-index: 10; }
+    .skip-link:focus { top: 8px; }
+
+    .site-header {
+      align-items: center; background: var(--header-bg); border-bottom: 2px solid var(--scarlet);
+      display: flex; justify-content: space-between; padding: 0.85rem 2rem;
+      position: sticky; top: 0; z-index: 5; backdrop-filter: blur(8px);
+    }
+    .brand { align-items: center; color: var(--text); display: flex; font-size: 1.15rem; font-weight: 800; gap: 0.5rem; text-decoration: none; letter-spacing: 0.04em; }
+    .brand .logo { color: var(--brass); font-size: 1.4rem; }
+    .header-actions { align-items: center; display: flex; gap: 0.6rem; }
+    .header-link, .theme-toggle, .button {
+      border: 1px solid var(--border); border-radius: 0.5rem; color: var(--text);
+      font: inherit; font-size: 0.88rem; font-weight: 700; padding: 0.55rem 0.8rem; text-decoration: none;
+    }
+    .theme-toggle { background: transparent; cursor: pointer; }
+    .header-link:hover, .theme-toggle:hover, .button:hover { border-color: var(--brass); color: var(--brass); }
+    .button.primary { background: var(--scarlet); border-color: var(--scarlet); color: #fff; text-transform: uppercase; letter-spacing: 0.04em; }
+    .button.primary:hover { background: var(--scarlet-bright); border-color: var(--scarlet-bright); color: #fff; }
+
+    section.block { margin: 0 auto; max-width: 1140px; padding: 2.75rem 2rem; }
+
+    /* HERO */
+    .hero { display: grid; grid-template-columns: 1fr 0.82fr; gap: 2.5rem; align-items: center; margin: 0 auto; max-width: 1140px; padding: 3.25rem 2rem 1.5rem; }
+    .hero-eyebrow { color: var(--brass); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+    .hero h1 { font-size: clamp(2.8rem, 7vw, 5rem); line-height: 0.92; margin: 0.5rem 0 0.3rem; text-shadow: 3px 3px 0 rgba(0,0,0,0.35); }
+    .hero h1 .you { color: var(--scarlet-bright); }
+    .hero .sub { font-size: clamp(1.1rem, 2.4vw, 1.5rem); font-weight: 800; letter-spacing: 0.02em; text-transform: uppercase; color: var(--text); }
+    .hero .lede { color: var(--text-muted); font-size: 1.12rem; max-width: 40ch; margin-top: 1rem; }
+    .hero-quote { color: var(--brass); font-style: italic; margin-top: 0.9rem; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.6rem; }
+    .hero-art { position: relative; }
+    .hero-art .frame {
+      border: 3px solid var(--brass); border-radius: 10px; overflow: hidden;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.4);
+      transform: rotate(-1.2deg);
+    }
+    .hero-art .frame img { display: block; width: 100%; }
+    .hero-art .ribbon {
+      position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%) rotate(-1.2deg);
+      background: var(--scarlet); color: #fff; font-weight: 800; letter-spacing: 0.08em;
+      padding: 0.4rem 1.1rem; border-radius: 4px; font-size: 0.8rem; text-transform: uppercase;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4); white-space: nowrap;
+    }
+
+    .section-head { margin-bottom: 1.6rem; }
+    .section-head .kicker { color: var(--scarlet-bright); font-size: 0.8rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+    .section-head h2 { font-size: clamp(1.7rem, 3.6vw, 2.5rem); letter-spacing: 0.01em; margin-top: 0.35rem; text-transform: uppercase; }
+    .section-head p { color: var(--text-muted); margin-top: 0.5rem; max-width: 62ch; }
+
+    .card {
+      background: var(--surface-soft); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;
+      transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+    .card:hover { background: var(--surface-hover); transform: translateY(-3px); border-color: var(--brass); }
+
+    /* Feature grid */
+    .feature-grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .feature-card .ico { font-size: 1.6rem; }
+    .feature-card h3 { font-size: 1.1rem; margin: 0.5rem 0 0.35rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .feature-card p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Avatars */
+    .avatar-grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .avatar-card { text-align: center; }
+    .avatar-card img { width: 128px; height: 128px; object-fit: contain; }
+    .avatar-card h3 { font-size: 1.05rem; margin-top: 0.4rem; text-transform: uppercase; }
+    .avatar-card p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Duty modes */
+    .modes { display: grid; gap: 1.1rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .mode { border-top: 4px solid var(--scarlet); }
+    .mode-head { align-items: center; display: flex; gap: 0.6rem; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; }
+    .mode-head .mode-ico { width: 46px; height: 46px; object-fit: contain; }
+    .mode ul { list-style: none; margin-top: 0.9rem; }
+    .mode li { color: var(--text-muted); padding: 0.3rem 0 0.3rem 1.5rem; position: relative; }
+    .mode li::before { content: "★"; color: var(--brass); left: 0.2rem; position: absolute; font-size: 0.8rem; top: 0.42rem; }
+
+    /* Deploy flow (poster's 4 steps) */
+    .deploy { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 2rem; align-items: start; }
+    .orders {
+      background: var(--parchment); color: var(--parchment-ink); border-radius: 10px; padding: 1.75rem;
+      border: 1px solid rgba(36,26,16,0.25); box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+      background-image: radial-gradient(rgba(36,26,16,0.05) 1px, transparent 1px); background-size: 4px 4px;
+    }
+    .orders h3 { color: var(--scarlet); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.02em; }
+    .orders .force { color: var(--parchment-ink); font-weight: 800; letter-spacing: 0.1em; font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid rgba(36,26,16,0.25); padding-bottom: 0.6rem; margin: 0.25rem 0 1rem; }
+    .step { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.9rem; padding: 0.8rem 0; border-bottom: 1px dashed rgba(36,26,16,0.22); }
+    .step:last-child { border-bottom: none; }
+    .step .n { background: var(--navy); border-radius: 999px; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; height: 2.4rem; width: 2.4rem; }
+    .step h4 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.02em; color: var(--parchment-ink); }
+    .step p { color: #4a3c25; font-size: 0.92rem; margin-top: 0.15rem; }
+    .step code, .orders code { background: rgba(176,30,36,0.12); color: var(--scarlet); border-radius: 5px; padding: 0.12rem 0.4rem; font-weight: 700; }
+    .urlbar { background: var(--scarlet); color: #fff; font-weight: 800; padding: 0.5rem 0.8rem; border-radius: 5px; display: inline-block; margin-top: 0.3rem; letter-spacing: 0.01em; word-break: break-all; }
+    .semper { background: var(--scarlet); color: #fff; border-radius: 8px; padding: 1.1rem 1.4rem; margin-top: 1.25rem; text-align: center; }
+    .semper strong { display: block; font-size: 1.35rem; text-transform: uppercase; letter-spacing: 0.03em; line-height: 1.15; }
+
+    .install-aside pre.code {
+      background: #0c0a08; border: 1px solid var(--border); border-radius: 10px; color: # e6edf3; color: #e6edf3;
+      overflow-x: auto; padding: 1rem 1.1rem; font: 0.86rem/1.5 "Cascadia Code", Consolas, monospace;
+    }
+    .install-aside h3 { text-transform: uppercase; font-size: 1rem; margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+    .install-aside p.callout { margin-top: 0.9rem; }
+
+    /* Commands */
+    table.cmd { border-collapse: collapse; width: 100%; }
+    table.cmd th, table.cmd td { border-bottom: 1px solid var(--border); padding: 0.7rem 0.6rem; text-align: left; vertical-align: top; }
+    table.cmd th { color: var(--scarlet-bright); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; }
+    table.cmd code { background: var(--tag-bg); border-radius: 6px; padding: 0.15rem 0.4rem; color: var(--text); }
+
+    .pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .pillar { text-align: center; border-top: 3px solid var(--brass); padding-top: 0.9rem; }
+    .pillar .pico { font-size: 1.5rem; }
+    .pillar h4 { text-transform: uppercase; letter-spacing: 0.08em; margin: 0.3rem 0; color: var(--text); }
+    .pillar p { color: var(--text-muted); font-size: 0.85rem; line-height: 1.5; }
+
+    .callout { border-left: 3px solid var(--scarlet); padding: 0.75rem 1rem; color: var(--text-muted); background: var(--surface-soft); border-radius: 8px; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin-top: 1.25rem; }
+    .tag { background: var(--tag-bg); border: 1px solid var(--border); border-radius: 999px; font-size: 0.75rem; font-weight: 700; padding: 0.35rem 0.65rem; }
+
+    .site-footer { background: var(--header-bg); border-top: 2px solid var(--scarlet); color: var(--text-muted); padding: 1.5rem 2rem; text-align: center; margin-top: 2rem; }
+    .site-footer a { color: var(--brass); text-decoration: none; }
+    .site-footer .motto { color: var(--brass); font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 0.8rem; }
+
+    @media (max-width: 880px) {
+      .hero { grid-template-columns: 1fr; text-align: center; }
+      .hero .lede { margin: 1rem auto 0; }
+      .hero-cta { justify-content: center; }
+      .hero-art { max-width: 420px; margin: 0.5rem auto 0; }
+      .feature-grid, .avatar-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .modes, .deploy { grid-template-columns: 1fr; }
+      .pillars { grid-template-columns: repeat(2, 1fr); }
+      .header-link { display: none; }
+    }
+    @media (max-width: 480px) {
+      .feature-grid, .avatar-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#what">Skip to content</a>
+  <header class="site-header">
+    <a class="brand" href="/"><span class="logo" aria-hidden="true">★</span>DaBoostR</a>
+    <div class="header-actions">
+      <a class="header-link" href="/">Home</a>
+      <a class="header-link" href="https://github.com/daboostr/Microsoft-Clippy-2.OOHRAH" target="_blank" rel="noopener">GitHub</a>
+      <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle color theme">
+        <span class="theme-icon" data-icon-light="Light" data-icon-dark="Dark">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero" aria-label="T.A.R.S. Wants You">
+      <div>
+        <p class="hero-eyebrow">★ Same mission. New amplifier. ★</p>
+        <h1 class="stencil">T.A.R.S.<br>Wants <span class="you">YOU</span></h1>
+        <p class="sub">to deploy Copilot in Scout</p>
+        <p class="lede">A hands-free, wake-word voice companion with the TARS personality from <em>Interstellar</em> — your AI force multiplier, bolted onto the full power of Microsoft Scout.</p>
+        <p class="hero-quote">"Humor setting: 75%. Honesty: 90%. Both adjustable."</p>
+        <div class="hero-cta">
+          <a class="button primary" href="#deploy">Deploy now</a>
+          <a class="button" href="https://github.com/daboostr/Microsoft-Clippy-2.OOHRAH" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+      </div>
+      <div class="hero-art">
+        <div class="frame"><img src="assets/tars-hero.png" alt="T.A.R.S. - the Microsoft Clippy 2.0 Marine, pointing at you"></div>
+        <span class="ribbon">Your AI Force Multiplier</span>
+      </div>
+    </section>
+
+    <!-- WHAT -->
+    <section class="block" id="what">
+      <div class="section-head">
+        <span class="kicker">What is it</span>
+        <h2>Talk to Scout. Out loud.</h2>
+        <p>Microsoft Clippy 2.OOHRAH — "TARS Voice" — is a standalone desktop orb that listens for the wake word <strong>"TARS,"</strong> answers in a neural voice, and lets you interrupt it mid-sentence like a real conversation. When a request outranks small talk, it hands the job to your full Microsoft Scout agent and reports back. Dry wit, zero fluff, always on watch.</p>
+      </div>
+      <div class="feature-grid">
+        <div class="card feature-card"><div class="ico">🎙️</div><h3>Wake word</h3><p>Say "TARS." No hotkeys, no clicking — it wakes up and listens.</p></div>
+        <div class="card feature-card"><div class="ico">🗣️</div><h3>Speech-to-speech</h3><p>Azure AI Foundry chat + neural TTS. Ask out loud, get a spoken answer.</p></div>
+        <div class="card feature-card"><div class="ico">✋</div><h3>Natural barge-in</h3><p>Talk over TARS and it stops to listen. Echo-cancelled so it never hears itself.</p></div>
+        <div class="card feature-card"><div class="ico">🌐</div><h3>Live web search</h3><p>Stock prices, trends, news — it searches and answers from real results.</p></div>
+        <div class="card feature-card"><div class="ico">🤝</div><h3>Handoff to Scout</h3><p>Heavy, multi-step, or destructive work is delegated to your full Scout agent.</p></div>
+        <div class="card feature-card"><div class="ico">🎖️</div><h3>Duty modes &amp; ceremonies</h3><p>Active Duty vs At Ease, animated avatars, and a bugle send-off on shutdown.</p></div>
+      </div>
+    </section>
+
+    <!-- DEPLOY (poster 4-step) -->
+    <section class="block" id="deploy">
+      <div class="section-head">
+        <span class="kicker">Deploy Microsoft Clippy 2.0</span>
+        <h2>Your orders, Marine</h2>
+        <p>Four steps from zero to a talking AI force multiplier in your Scout.</p>
+      </div>
+      <div class="deploy">
+        <div class="orders">
+          <h3>Deploy Microsoft Clippy 2.0</h3>
+          <div class="force">★ Your AI Force Multiplier</div>
+          <div class="step">
+            <span class="n">1</span>
+            <div>
+              <h4>Go to the mission page</h4>
+              <span class="urlbar">DaBoostR.com/Microsoft-Clippy-2.OOHRAH</span>
+              <p>Head to the mission page. Get the asset. Join the fight.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="n">2</span>
+            <div>
+              <h4>Download the skill</h4>
+              <p>Grab the Microsoft Clippy 2.0 install skill and add it to your arsenal — it clones the repo and provisions everything.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="n">3</span>
+            <div>
+              <h4>Pop it into your Scout chat</h4>
+              <p>Drop the skill into Scout, then run <code>/hydrate-tars</code> to wire up your Azure AI Foundry resource.</p>
+            </div>
+          </div>
+          <div class="step">
+            <span class="n">4</span>
+            <div>
+              <h4>Start ordering your Scout around</h4>
+              <p>Put Clippy to work like a Marine on the frontlines — research, prepare, analyze, build, and close deals faster.</p>
+            </div>
+          </div>
+          <div class="semper"><strong>Close deals.<br>Drive impact.<br>Semper Fi.</strong></div>
+        </div>
+
+        <div class="install-aside">
+          <h3>Prefer to do it by hand?</h3>
+          <pre class="code">git clone https://github.com/daboostr/\
+  Microsoft-Clippy-2.OOHRAH.git
+cd Microsoft-Clippy-2.OOHRAH
+npm install
+copy .env.example .env  &amp;  notepad .env
+az login
+powershell -ExecutionPolicy Bypass \
+  -File .\launch-tars.ps1</pre>
+          <p class="callout">Prereqs: Windows, Node 18+, Azure CLI, and an Azure AI Foundry resource with a chat deployment (e.g. <code>gpt-4.1</code>) + a Speech resource. Auth is Entra ID — <strong>no API keys</strong>.</p>
+          <ul class="tag-list" aria-label="Stack">
+            <li class="tag">Electron</li>
+            <li class="tag">Azure AI Foundry</li>
+            <li class="tag">Neural TTS</li>
+            <li class="tag">Entra ID auth</li>
+            <li class="tag">Microsoft Scout</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AVATARS -->
+    <section class="block" id="avatars">
+      <div class="section-head">
+        <span class="kicker">Avatar states</span>
+        <h2>Six animated states, one Marine</h2>
+        <p>TARS shows a different animated 3D avatar for whatever it's doing. All six are rendered from the same model so the character stays consistent.</p>
+      </div>
+      <div class="avatar-grid">
+        <div class="card avatar-card"><img src="avatars/TARS_active.webp" alt="Active Duty avatar"><h3>Active Duty</h3><p>On the clock, ready to work</p></div>
+        <div class="card avatar-card"><img src="avatars/TARS_ease.webp" alt="At Ease avatar"><h3>At Ease</h3><p>Off duty, just chatting</p></div>
+        <div class="card avatar-card"><img src="avatars/TARS_listening.webp" alt="Listening avatar"><h3>Listening</h3><p>Hearing you after the wake word</p></div>
+        <div class="card avatar-card"><img src="avatars/TARS_thinking.webp" alt="Thinking avatar"><h3>Thinking</h3><p>Working it out (Hymn hums low)</p></div>
+        <div class="card avatar-card"><img src="avatars/TARS_speaking.webp" alt="Speaking avatar"><h3>Speaking</h3><p>Talking back</p></div>
+        <div class="card avatar-card"><img src="avatars/TARS_shutdown.webp" alt="Salute avatar"><h3>Salute</h3><p>Shutdown send-off (under Taps)</p></div>
+      </div>
+      <p class="callout" style="margin-top:1.25rem">Avatars &amp; likeness &copy; DaBoostR — CC BY-NC-ND 4.0. Non-commercial, no derivatives.</p>
+    </section>
+
+    <!-- DUTY MODES -->
+    <section class="block" id="modes">
+      <div class="section-head">
+        <span class="kicker">Quick userguide</span>
+        <h2>Two duty modes</h2>
+        <p>Both stay awake and listening. The difference is whether TARS does <em>work</em> or just <em>talks</em>. Switching modes starts a fresh conversation thread.</p>
+      </div>
+      <div class="modes">
+        <div class="card mode">
+          <div class="mode-head"><img class="mode-ico" src="avatars/TARS_active.webp" alt="Active Duty avatar"> Active Duty</div>
+          <ul>
+            <li>On the clock, mission-focused</li>
+            <li><strong>Can delegate tasks to Scout</strong> — files, email, research, heavy jobs</li>
+            <li>Tools: time, calc, web search, fetch, recall, <strong>delegate</strong></li>
+            <li>Crisp, one or two spoken sentences</li>
+            <li>Say: "Active Duty," "Attention," "Back to work"</li>
+          </ul>
+        </div>
+        <div class="card mode">
+          <div class="mode-head"><img class="mode-ico" src="avatars/TARS_ease.webp" alt="At Ease avatar"> At Ease</div>
+          <ul>
+            <li>Off duty, relaxed companion</li>
+            <li><strong>No delegation</strong> — tells you to go back on Active Duty for real work</li>
+            <li>Tools: time, calc, web search, fetch, recall</li>
+            <li>Conversational — asks questions and riffs</li>
+            <li>Say: "At Ease," "Stand down," "Off duty"</li>
+          </ul>
+        </div>
+      </div>
+      <p class="callout" style="margin-top:1.25rem">"Stand down" means <strong>At Ease</strong> (relax), <em>not</em> shutdown. To exit, say "TARS, shut down."</p>
+    </section>
+
+    <!-- HANDOFF -->
+    <section class="block" id="handoff">
+      <div class="section-head">
+        <span class="kicker">How handoff works</span>
+        <h2>From your voice to Scout and back</h2>
+        <p>TARS's own toolset is small by design. When a request is bigger, it routes it to the agent that can actually do it — and keeps a live inbox of every job.</p>
+      </div>
+      <div class="pillars">
+        <div class="card pillar"><div class="pico">🗣️</div><h4>You ask</h4><p>"TARS, email the team last week's pipeline." On Active Duty.</p></div>
+        <div class="card pillar"><div class="pico">📨</div><h4>TARS queues it</h4><p>Writes a job file into the shared <code>~/.copilot/handoff</code> queue.</p></div>
+        <div class="card pillar"><div class="pico">⚙️</div><h4>Scout works it</h4><p>Your full Microsoft Scout agent picks it up and runs the task.</p></div>
+        <div class="card pillar"><div class="pico">✅</div><h4>Reports back</h4><p>Result lands in the auto-refreshing Handoff Inbox — TARS says it's done.</p></div>
+      </div>
+    </section>
+
+    <!-- COMMANDS -->
+    <section class="block" id="commands">
+      <div class="section-head">
+        <span class="kicker">Voice commands</span>
+        <h2>Say the word</h2>
+      </div>
+      <div class="card">
+        <table class="cmd">
+          <thead><tr><th>Say</th><th>TARS does</th></tr></thead>
+          <tbody>
+            <tr><td><code>TARS</code></td><td>Wakes up and listens</td></tr>
+            <tr><td><em>(just start talking while it speaks)</em></td><td>Interrupts — it stops and listens</td></tr>
+            <tr><td><code>At Ease</code> / <code>Stand down</code> / <code>Off duty</code></td><td>Switch to At Ease (stays listening, drops delegation)</td></tr>
+            <tr><td><code>Active Duty</code> / <code>Attention</code> / <code>Back to work</code></td><td>Return to Active Duty (re-enables delegation)</td></tr>
+            <tr><td><code>TARS, shut down</code></td><td>Plays the Salute + Taps send-off and exits</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PILLARS / CREED -->
+    <section class="block" id="creed">
+      <div class="pillars">
+        <div class="card pillar"><div class="pico">👥</div><h4>People</h4><p>Customers<br>Colleagues<br>Communities</p></div>
+        <div class="card pillar"><div class="pico">⚙️</div><h4>Solutions</h4><p>Real outcomes<br>Lasting value<br>Together</p></div>
+        <div class="card pillar"><div class="pico">📈</div><h4>Impact</h4><p>Bigger<br>Faster<br>Stronger</p></div>
+        <div class="card pillar"><div class="pico">∞</div><h4>Always</h4><p>Learn<br>Adapt<br>Keep going</p></div>
+      </div>
+      <p style="text-align:center;margin-top:1.5rem;color:var(--brass);font-weight:800;letter-spacing:0.12em;text-transform:uppercase">★ AI today. A more capable tomorrow. ★</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="motto">People · Solutions · Impact · Always</p>
+    <p style="margin-top:0.6rem">Code: MIT &middot; Avatars &amp; likeness: <a href="https://github.com/daboostr/Microsoft-Clippy-2.OOHRAH/blob/main/LICENSE-ASSETS.md" target="_blank" rel="noopener">CC BY-NC-ND 4.0</a> &middot; A non-commercial tribute. "Microsoft" &amp; "Clippy" are Microsoft marks; "TARS" / <em>Interstellar</em> are Warner Bros. — no affiliation implied.</p>
+    <p style="margin-top:0.5rem">&copy; <span id="year"></span> DaBoostR &middot; <a href="/">daboostr.com</a></p>
+  </footer>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const themeToggle = document.getElementById("themeToggle");
+      const themeIcon = document.querySelector(".theme-icon");
+      const year = document.getElementById("year");
+      const themeKey = "site-theme";
+      function setTheme(theme) {
+        root.setAttribute("data-theme", theme);
+        themeIcon.textContent = theme === "light" ? themeIcon.dataset.iconLight : themeIcon.dataset.iconDark;
+        try { localStorage.setItem(themeKey, theme); } catch (_) {}
+      }
+      let savedTheme;
+      try { savedTheme = localStorage.getItem(themeKey); } catch (_) {}
+      setTheme(savedTheme || "dark");
+      themeToggle.addEventListener("click", () => {
+        setTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
+      });
+      year.textContent = new Date().getFullYear();
+    })();
+  </script>
+</body>
+</html>
