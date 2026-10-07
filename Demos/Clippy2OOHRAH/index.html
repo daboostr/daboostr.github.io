@@ -119,6 +119,7 @@
     .modes { display: grid; gap: 1.1rem; grid-template-columns: repeat(2, minmax(0,1fr)); }
     .mode-head { align-items: center; display: flex; gap: 0.6rem; font-size: 1.25rem; font-weight: 700; }
     .mode-head .dot { font-size: 1.4rem; }
+    .mode-head .mode-ico { width: 44px; height: 44px; object-fit: contain; }
     .mode ul { list-style: none; margin-top: 0.9rem; }
     .mode li { color: var(--text-muted); padding: 0.3rem 0 0.3rem 1.5rem; position: relative; }
     .mode li::before { content: "›"; color: var(--accent); left: 0.3rem; position: absolute; font-weight: 700; }
@@ -245,7 +246,7 @@
       </div>
       <div class="modes">
         <div class="card mode">
-          <div class="mode-head"><span class="dot">🫡</span> Active Duty</div>
+          <div class="mode-head"><img class="mode-ico" src="avatars/TARS_active.webp" alt="Active Duty avatar"> Active Duty</div>
           <ul>
             <li>On the clock, mission-focused</li>
             <li><strong>Can delegate tasks to Scout</strong> — files, email, research, heavy jobs</li>
@@ -255,7 +256,7 @@
           </ul>
         </div>
         <div class="card mode">
-          <div class="mode-head"><span class="dot">😎</span> At Ease</div>
+          <div class="mode-head"><img class="mode-ico" src="avatars/TARS_ease.webp" alt="At Ease avatar"> At Ease</div>
           <ul>
             <li>Off duty, relaxed companion</li>
             <li><strong>No delegation</strong> — tells you to go back on Active Duty for real work</li>
