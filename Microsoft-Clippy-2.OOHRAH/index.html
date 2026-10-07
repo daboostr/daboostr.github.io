@@ -308,7 +308,7 @@ copy .env.example .env  &amp;  notepad .env
 az login
 powershell -ExecutionPolicy Bypass \
   -File .\launch-tars.ps1</pre>
-          <p class="callout">Prereqs: Windows, Node 18+, Azure CLI, and an Azure AI Foundry resource with a chat deployment (e.g. <code>gpt-4.1</code>) + a Speech resource. Auth is Entra ID — <strong>no API keys</strong>.</p>
+          <p class="callout">You only need two things: <strong>Microsoft Scout</strong> and an <strong>Azure subscription</strong> whose account can create AI Foundry resources. The <code>/hydrate-tars</code> skill auto-provisions everything else.</p>
           <ul class="tag-list" aria-label="Stack">
             <li class="tag">Electron</li>
             <li class="tag">Azure AI Foundry</li>
