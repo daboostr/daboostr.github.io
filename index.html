@@ -166,6 +166,33 @@
       transform: translateY(-4px);
     }
 
+    .project-card.featured {
+      grid-column: 1 / -1;
+    }
+
+    .project-screenshot {
+      margin-top: 1.5rem;
+    }
+
+    .project-screenshot img {
+      border: 1px solid var(--border);
+      border-radius: 0.625rem;
+      display: block;
+      height: auto;
+      width: 100%;
+    }
+
+    .project-screenshot figcaption,
+    .project-card .project-credit {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 0.75rem;
+    }
+
+    .project-credit a {
+      color: var(--accent);
+    }
+
     .project-state {
       color: var(--accent);
       font-size: 0.75rem;
@@ -285,6 +312,31 @@
 
     <section class="projects" id="projects" aria-label="Selected projects">
       <div class="project-list">
+        <article class="project-card featured">
+          <span class="project-state">Current Project</span>
+          <h1><a href="https://github.com/daboostr/Bot-Crossing-TARS-Adapter" target="_blank" rel="noopener">Bot Crossing - TARS Adapter</a></h1>
+          <p>Your voice handoffs, brought to life. A standalone, local 3D operations board for TARS Voice and Microsoft Scout: each handoff becomes a bot, pending jobs get to work, completed jobs celebrate, and jobs needing your input raise a question. Click a bot to read its request, result, and reported state.</p>
+          <p>The read-only adapter follows the same queue files that feed the TARS Handoff Inbox, without modifying TARS or consuming its spoken replies. The original Bot Crossing scenery and characters remain intact; custom avatars, a Marine-style environment, and Cowork integrations are planned.</p>
+          <figure class="project-screenshot">
+            <a href="assets/bot-crossing-tars-adapter.png" target="_blank" rel="noopener" aria-label="Open the full-size Bot Crossing - TARS Adapter screenshot">
+              <img src="assets/bot-crossing-tars-adapter.png" width="2281" height="1258" loading="lazy" decoding="async" alt="Bot Crossing's 3D colony displaying TARS Voice handoff jobs, with working, waiting, and completed indicators and the TARS voice avatar at bottom right.">
+            </a>
+            <figcaption>Bot Crossing - TARS Adapter in action, with TARS Voice at bottom right. A snapshot of local handoff activity, not a live browser demo.</figcaption>
+          </figure>
+          <p class="project-credit">Built on <a href="https://github.com/Station-Sciences/bot-crossing" target="_blank" rel="noopener">Bot Crossing by Jarren Rocks / Station Sciences</a>, with its original rendering engine and assets.</p>
+          <ul class="tag-list" aria-label="Technologies">
+            <li class="tag">Three.js</li>
+            <li class="tag">Node.js</li>
+            <li class="tag">TARS Voice</li>
+            <li class="tag">Microsoft Scout</li>
+            <li class="tag">Local &amp; read-only</li>
+          </ul>
+          <div class="card-actions">
+            <a class="button primary" href="https://github.com/daboostr/Bot-Crossing-TARS-Adapter" target="_blank" rel="noopener">View on GitHub</a>
+            <a class="button" href="/Microsoft-Clippy-2.OOHRAH/">Meet TARS Voice</a>
+          </div>
+        </article>
+
         <article class="project-card">
           <span class="project-state">Current Project</span>
           <h1><a href="/Microsoft-Clippy-2.OOHRAH/">Clippy 2.OOHRAH</a></h1>
